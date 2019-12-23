@@ -129,11 +129,18 @@ AC_CHECK_LIB(
 # Check for generic headers (fltk, rtaudio and libsndfile are static,
 # we ask if headers are available)
 
+
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(
 	[FL/Fl.H],
 	[],
-	[AC_MSG_ERROR([library 'fltk' not found!])]
+	[
+		AC_CHECK_HEADER(
+			[fltk/FL/Fl.H],
+			[],
+			[AC_MSG_ERROR([library 'fltk' not found!])]
+		)
+	]
 )
 AC_LANG_POP
 

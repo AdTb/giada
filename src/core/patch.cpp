@@ -25,7 +25,10 @@
  * -------------------------------------------------------------------------- */
 
 
+#include <fstream>
+				#include <iostream>
 #include <jansson.h>
+#include "deps/json/single_include/nlohmann/json.hpp"
 #include "utils/log.h"
 #include "utils/string.h"
 #include "utils/ver.h"
@@ -57,19 +60,15 @@
 extern giada::v::gdMainWindow* G_MainWin;
 
 
+namespace nl = nlohmann;
+
+
 namespace giada {
 namespace m {
 namespace patch
 {
 namespace
 {
-void sanitize_()
-{
-	namespace um = u::math;
-	samplerate = um::bound(samplerate, 0, G_DEFAULT_SAMPLERATE);
-}
-
-
 void sanitize_(Channel& c)
 {
 	namespace um = u::math;
@@ -84,41 +83,34 @@ void sanitize_(Channel& c)
 /* -------------------------------------------------------------------------- */
 
 
-void readCommons_(json_t* j)
+void readCommons_(const nl::json& j)
 {
-	namespace uj = u::json;
+	namespace um = u::math;
+	
+	name       = j.value(PATCH_KEY_NAME, G_DEFAULT_PATCH_NAME);
+	samplerate = j.value(PATCH_KEY_SAMPLERATE, G_DEFAULT_SAMPLERATE);
+	lastTakeId = j.value(PATCH_KEY_LAST_TAKE_ID, 0);
+	metronome  = j.value(PATCH_KEY_METRONOME, false);
 
-	name         = uj::readString(j, PATCH_KEY_NAME);
-	samplerate   = uj::readInt(j, PATCH_KEY_SAMPLERATE);
-	lastTakeId   = uj::readInt(j, PATCH_KEY_LAST_TAKE_ID);
-	metronome    = uj::readBool(j, PATCH_KEY_METRONOME);
+	samplerate = um::bound(samplerate, 0, G_DEFAULT_SAMPLERATE);
 
-	clock::setBpm     (uj::readFloat(j, PATCH_KEY_BPM));
-	clock::setBeats   (uj::readInt(j, PATCH_KEY_BEATS), uj::readInt(j, PATCH_KEY_BARS));
-	clock::setQuantize(uj::readInt(j, PATCH_KEY_QUANTIZE));
+	clock::setBpm     (j.value(PATCH_KEY_BPM, G_DEFAULT_BPM));
+	clock::setBeats   (j.value(PATCH_KEY_BEATS, G_DEFAULT_BEATS), j.value(PATCH_KEY_BARS, G_DEFAULT_BARS));
+	clock::setQuantize(j.value(PATCH_KEY_QUANTIZE, G_DEFAULT_QUANTIZE));
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 
-void readColumns_(json_t* j)
+void readColumns_(const nl::json& j)
 {
-	namespace uj = u::json;
-
-	json_t* jcs = json_object_get(j, PATCH_KEY_COLUMNS);
-	if (jcs == nullptr)
-		return;
-	
 	G_MainWin->keyboard->deleteAllColumns();
-
-	size_t  i;
-	json_t* jc;
-	json_array_foreach(jcs, i, jc) {
+	ID id = 0;
+	for (const auto& jcol : j[PATCH_KEY_COLUMNS])
 		G_MainWin->keyboard->addColumn(
-			uj::readInt(jc, PATCH_KEY_COLUMN_WIDTH),
-			uj::readInt(jc, PATCH_KEY_COLUMN_ID));
-	};
+			jcol.value(PATCH_KEY_COLUMN_WIDTH, G_DEFAULT_COLUMN_WIDTH), 
+			jcol.value(PATCH_KEY_COLUMN_ID, ++id));
 }
 
 
@@ -126,119 +118,60 @@ void readColumns_(json_t* j)
 
 #ifdef WITH_VST
 
-void readPluginParams_(json_t* j, std::vector<float>& params)
+
+void readPlugins_(const nl::json& j)
 {
-	json_t* jps = json_object_get(j, PATCH_KEY_PLUGIN_PARAMS);
-	if (jps == nullptr)
-		return;
-
-	size_t  i;
-	json_t* jp;
-	json_array_foreach(jps, i, jp)
-		params.push_back(json_real_value(jp));
-}
-
-
-void readMidiInPluginParams_(json_t* j, std::vector<uint32_t>& params)
-{
-	json_t* jps = json_object_get(j, PATCH_KEY_PLUGIN_MIDI_IN_PARAMS);
-	if (jps == nullptr)
-		return;
-
-	size_t  i;
-	json_t* jp;
-	json_array_foreach(jps, i, jp)
-		params.push_back(json_integer_value(jp));
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-
-void readPlugins_(json_t* j)
-{
-	namespace uj = u::json;
-
-	json_t* jps = json_object_get(j, PATCH_KEY_PLUGINS);
-	if (jps == nullptr)
-		return;
-
-	size_t  i;
-	json_t* jp;
-	json_array_foreach(jps, i, jp) {
-		
-		if (!uj::isObject(jp))
-			continue;
-
+	ID id = 0;
+	for (const auto& jplugin : j[PATCH_KEY_PLUGINS]) {
 		Plugin p;
-		p.id     = uj::readInt   (jp, PATCH_KEY_PLUGIN_ID);
-		p.path   = uj::readString(jp, PATCH_KEY_PLUGIN_PATH);
-		p.bypass = uj::readBool  (jp, PATCH_KEY_PLUGIN_BYPASS);
+		p.id     = jplugin.value(PATCH_KEY_PLUGIN_ID, ++id);
+		p.path   = jplugin.value(PATCH_KEY_PLUGIN_PATH, "");
+		p.bypass = jplugin.value(PATCH_KEY_PLUGIN_BYPASS, false);
 
-		readPluginParams_(jp, p.params);
-		readMidiInPluginParams_(jp, p.midiInParams);
+		for (const auto& jparam : jplugin[PATCH_KEY_PLUGIN_PARAMS])
+			p.params.push_back(jparam);
+
+		for (const auto& jmidiParam : jplugin[PATCH_KEY_PLUGIN_MIDI_IN_PARAMS])
+			p.midiInParams.push_back(jmidiParam);			
 
 		model::plugins.push(pluginManager::makePlugin(p));
 	}
 }
 
+
 #endif
+
 
 /* -------------------------------------------------------------------------- */
 
 
-void readWaves_(json_t* j, const std::string& basePath)
+void readWaves_(const nl::json& j, const std::string& basePath)
 {
-	namespace uj = u::json;
-
-	json_t* jws = json_object_get(j, PATCH_KEY_WAVES);
-	if (jws == nullptr)
-		return;
-
-	size_t  i;
-	json_t* jw;
-	json_array_foreach(jws, i, jw) {
-		
-		if (!uj::isObject(jw))
-			continue;
-
+	ID id = 0;
+	for (const auto& jwave : j[PATCH_KEY_WAVES]) {
 		Wave w;
-		w.id   = uj::readInt(jw, PATCH_KEY_WAVE_ID);
-		w.path = basePath + uj::readString(jw, PATCH_KEY_WAVE_PATH);
-
-		model::waves.push(std::move(waveManager::createFromPatch(w)));
+		w.id   = jwave.value(PATCH_KEY_WAVE_ID, ++id);
+		w.path = basePath + jwave.value(PATCH_KEY_WAVE_PATH, "");
+		model::waves.push(std::move(waveManager::createFromPatch(w)));		
 	}
-	return;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 
-void readActions_(json_t* j)
+void readActions_(const nl::json& j)
 {
-	namespace uj = u::json;
-
-	json_t* jas = json_object_get(j, PATCH_KEY_ACTIONS);
-	if (jas == nullptr)
-		return;
-
 	std::vector<Action> actions;
-	size_t  i;
-	json_t* ja;
-	json_array_foreach(jas, i, ja) {
-		
-		if (!uj::isObject(ja))
-			continue;
-
+	ID id = 0;
+	for (const auto& jaction : j[PATCH_KEY_ACTIONS]) {
 		Action a;
-		a.id        = uj::readInt(ja, G_PATCH_KEY_ACTION_ID);
-		a.channelId = uj::readInt(ja, G_PATCH_KEY_ACTION_CHANNEL);
-		a.frame     = uj::readInt(ja, G_PATCH_KEY_ACTION_FRAME);
-		a.event     = uj::readInt(ja, G_PATCH_KEY_ACTION_EVENT);
-		a.prevId    = uj::readInt(ja, G_PATCH_KEY_ACTION_PREV);
-		a.nextId    = uj::readInt(ja, G_PATCH_KEY_ACTION_NEXT);
-
+		a.id        = jaction.value(G_PATCH_KEY_ACTION_ID, ++id);
+		a.channelId = jaction.value(G_PATCH_KEY_ACTION_CHANNEL, 0);
+		a.frame     = jaction.value(G_PATCH_KEY_ACTION_FRAME, 0);
+		a.event     = jaction.value(G_PATCH_KEY_ACTION_EVENT, 0);
+		a.prevId    = jaction.value(G_PATCH_KEY_ACTION_PREV, 0);
+		a.nextId    = jaction.value(G_PATCH_KEY_ACTION_NEXT, 0);
 		actions.push_back(a);
 	}
 
@@ -252,87 +185,63 @@ void readActions_(json_t* j)
 /* -------------------------------------------------------------------------- */
 
 
-void readChannelPlugins_(json_t* j, std::vector<ID>& pluginIds)
+void readChannels_(const nl::json& j)
 {
-	json_t* jps = json_object_get(j, PATCH_KEY_CHANNEL_PLUGINS);
-	if (jps == nullptr)
-		return;
-
-	size_t  i;
-	json_t* jp;
-	json_array_foreach(jps, i, jp)
-		pluginIds.push_back(json_integer_value(jp));
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-
-void readChannels_(json_t* j)
-{
-	namespace uj = u::json;
-
-	json_t* jcs = json_object_get(j, PATCH_KEY_CHANNELS);
-	if (jcs == nullptr)
-		return;
-
-	size_t  i;
-	json_t* jc;
-	json_array_foreach(jcs, i, jc) {
-
-		if (!uj::isObject(jc))
-			continue;
-
+	ID id = 0;
+	for (const auto& jchannel : j[PATCH_KEY_CHANNELS]) {
 		Channel c;
-		c.id     = uj::readInt  (jc, PATCH_KEY_CHANNEL_ID);
-		c.type   = static_cast<ChannelType>(uj::readInt(jc, PATCH_KEY_CHANNEL_TYPE));
-		c.volume = uj::readFloat(jc, PATCH_KEY_CHANNEL_VOLUME);
-		
+		c.id     = jchannel.value(PATCH_KEY_CHANNEL_ID, ++id);
+		c.type   = static_cast<ChannelType>(jchannel.value(PATCH_KEY_CHANNEL_TYPE, 1));
+		c.volume = jchannel.value(PATCH_KEY_CHANNEL_VOLUME, G_DEFAULT_VOL);
+
 		if (c.type != ChannelType::MASTER) {
-			c.size              = G_GUI_CHANNEL_H_1; // TODO temporarily disabled - uj::readInt   (jc, PATCH_KEY_CHANNEL_SIZE);
-			c.name              = uj::readString(jc, PATCH_KEY_CHANNEL_NAME);
-			c.columnId          = uj::readInt   (jc, PATCH_KEY_CHANNEL_COLUMN);
-			c.key               = uj::readInt   (jc, PATCH_KEY_CHANNEL_KEY);
-			c.mute              = uj::readInt   (jc, PATCH_KEY_CHANNEL_MUTE);
-			c.solo              = uj::readInt   (jc, PATCH_KEY_CHANNEL_SOLO);
-			c.pan               = uj::readFloat (jc, PATCH_KEY_CHANNEL_PAN);
-			c.hasActions        = uj::readBool  (jc, PATCH_KEY_CHANNEL_HAS_ACTIONS);
-			c.midiIn            = uj::readBool  (jc, PATCH_KEY_CHANNEL_MIDI_IN);
-			c.midiInKeyPress    = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_IN_KEYPRESS);
-			c.midiInKeyRel      = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_IN_KEYREL);
-			c.midiInKill        = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_IN_KILL);
-			c.midiInArm         = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_IN_ARM);
-			c.midiInVolume      = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_IN_VOLUME);
-			c.midiInMute        = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_IN_MUTE);
-			c.midiInSolo        = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_IN_SOLO);
-			c.midiInFilter      = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_IN_FILTER);
-			c.midiOutL          = uj::readBool  (jc, PATCH_KEY_CHANNEL_MIDI_OUT_L);
-			c.midiOutLplaying   = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_OUT_L_PLAYING);
-			c.midiOutLmute      = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_OUT_L_MUTE);
-			c.midiOutLsolo      = uj::readInt   (jc, PATCH_KEY_CHANNEL_MIDI_OUT_L_SOLO);
-			c.armed             = uj::readBool  (jc, PATCH_KEY_CHANNEL_ARMED);
+			c.size              = jchannel.value(PATCH_KEY_CHANNEL_SIZE, G_GUI_CHANNEL_H_1);
+			c.name              = jchannel.value(PATCH_KEY_CHANNEL_NAME, "");
+			c.columnId          = jchannel.value(PATCH_KEY_CHANNEL_COLUMN, 1);
+			c.key               = jchannel.value(PATCH_KEY_CHANNEL_KEY, 0);
+			c.mute              = jchannel.value(PATCH_KEY_CHANNEL_MUTE, 0);
+			c.solo              = jchannel.value(PATCH_KEY_CHANNEL_SOLO, 0);
+			c.pan               = jchannel.value(PATCH_KEY_CHANNEL_PAN, 0.5);
+			c.hasActions        = jchannel.value(PATCH_KEY_CHANNEL_HAS_ACTIONS, false);
+			c.midiIn            = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN, 0);
+			c.midiInKeyPress    = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_KEYPRESS, 0);
+			c.midiInKeyRel      = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_KEYREL, 0);
+			c.midiInKill        = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_KILL, 0);
+			c.midiInArm         = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_ARM, 0);
+			c.midiInVolume      = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_VOLUME, 0);
+			c.midiInMute        = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_MUTE, 0);
+			c.midiInSolo        = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_SOLO, 0);
+			c.midiInFilter      = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_FILTER, 0);
+			c.midiOutL          = jchannel.value(PATCH_KEY_CHANNEL_MIDI_OUT_L, 0);
+			c.midiOutLplaying   = jchannel.value(PATCH_KEY_CHANNEL_MIDI_OUT_L_PLAYING, 0);
+			c.midiOutLmute      = jchannel.value(PATCH_KEY_CHANNEL_MIDI_OUT_L_MUTE, 0);
+			c.midiOutLsolo      = jchannel.value(PATCH_KEY_CHANNEL_MIDI_OUT_L_SOLO, 0);
+			c.armed             = jchannel.value(PATCH_KEY_CHANNEL_ARMED, false);
 		}
 
 #ifdef WITH_VST
-		readChannelPlugins_(jc, c.pluginIds);
+
+		for (const auto& jplugin : jchannel[PATCH_KEY_CHANNEL_PLUGINS]) 
+			c.pluginIds.push_back(jplugin);
+
 #endif
 
 		if (c.type == ChannelType::SAMPLE) {
-			c.waveId            = uj::readInt  (jc, PATCH_KEY_CHANNEL_WAVE_ID);
-			c.mode              = static_cast<ChannelMode>(uj::readInt(jc, PATCH_KEY_CHANNEL_MODE));
-			c.begin             = uj::readInt  (jc, PATCH_KEY_CHANNEL_BEGIN);
-			c.end               = uj::readInt  (jc, PATCH_KEY_CHANNEL_END);
-			c.readActions       = uj::readBool (jc, PATCH_KEY_CHANNEL_READ_ACTIONS);
-			c.pitch             = uj::readFloat(jc, PATCH_KEY_CHANNEL_PITCH);
-			c.inputMonitor      = uj::readBool (jc, PATCH_KEY_CHANNEL_INPUT_MONITOR);
-			c.midiInVeloAsVol   = uj::readBool (jc, PATCH_KEY_CHANNEL_MIDI_IN_VELO_AS_VOL);
-			c.midiInReadActions = uj::readInt  (jc, PATCH_KEY_CHANNEL_MIDI_IN_READ_ACTIONS);
-			c.midiInPitch       = uj::readInt  (jc, PATCH_KEY_CHANNEL_MIDI_IN_PITCH);
+			c.mode              = static_cast<ChannelMode>(jchannel.value(PATCH_KEY_CHANNEL_MODE, 1));
+			c.waveId            = jchannel.value(PATCH_KEY_CHANNEL_WAVE_ID, 0);
+			c.begin             = jchannel.value(PATCH_KEY_CHANNEL_BEGIN, 0);
+			c.end               = jchannel.value(PATCH_KEY_CHANNEL_END, 0);
+			c.readActions       = jchannel.value(PATCH_KEY_CHANNEL_READ_ACTIONS, false);
+			c.pitch             = jchannel.value(PATCH_KEY_CHANNEL_PITCH, G_DEFAULT_PITCH);
+			c.inputMonitor      = jchannel.value(PATCH_KEY_CHANNEL_INPUT_MONITOR, false);
+			c.midiInVeloAsVol   = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_VELO_AS_VOL, 0);
+			c.midiInReadActions = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_READ_ACTIONS, 0);
+			c.midiInPitch       = jchannel.value(PATCH_KEY_CHANNEL_MIDI_IN_PITCH, 0);
 		}
 		else
 		if (c.type == ChannelType::MIDI) {
-			c.midiOut     = uj::readInt(jc, PATCH_KEY_CHANNEL_MIDI_OUT);
-			c.midiOutChan = uj::readInt(jc, PATCH_KEY_CHANNEL_MIDI_OUT_CHAN);
+			c.midiOut     = jchannel.value(PATCH_KEY_CHANNEL_MIDI_OUT, 0);
+			c.midiOutChan = jchannel.value(PATCH_KEY_CHANNEL_MIDI_OUT_CHAN, 0);
 		}
 
 		sanitize_(c);
@@ -658,13 +567,24 @@ bool write(const std::string& name, const std::string& file, bool isProject)
 
 int read(const std::string& file, const std::string& basePath)
 {
-	namespace uj = u::json;
-
-	json_t* j = uj::load(file);
-	if (j == nullptr) 
+	std::ifstream ifs(file);
+	if (!ifs.good())
 		return G_PATCH_UNREADABLE;
+
+	nl::json j = nl::json::parse(ifs);
+
+	if (j[PATCH_KEY_HEADER] != "GIADAPTC")
+		return G_PATCH_INVALID;
 	
-	init();
+	Version version = {
+		static_cast<int>(j[PATCH_KEY_VERSION_MAJOR]),
+		static_cast<int>(j[PATCH_KEY_VERSION_MINOR]),
+		static_cast<int>(j[PATCH_KEY_VERSION_PATCH])
+	};
+
+	if (version < Version{0, 16, 0})
+		return G_PATCH_UNSUPPORTED;
+
 	readCommons_(j);
 	readColumns_(j);
 #ifdef WITH_VST
@@ -673,10 +593,6 @@ int read(const std::string& file, const std::string& basePath)
 	readWaves_(j, basePath);
 	readActions_(j);
 	readChannels_(j);
-
-	json_decref(j);
-
-	sanitize_();
 
 	return G_PATCH_OK;
 }

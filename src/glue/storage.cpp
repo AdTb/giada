@@ -27,6 +27,7 @@
 
 #include <cassert>
 #include "core/model/model.h"
+#include "core/model/storage.h"
 #include "core/channels/channel.h"
 #include "core/channels/sampleChannel.h"
 #include "core/channels/midiChannel.h"
@@ -107,8 +108,8 @@ bool savePatch_(const std::string& path, const std::string& name, bool isProject
 	if (!m::patch::write(name, path, isProject))
 		return false;
 	u::gui::updateMainWinLabel(name);
-	m::conf::patchPath = isProject ? u::fs::getUpDir(u::fs::getUpDir(path)) : u::fs::dirname(path);
-	m::patch::name     = name;
+	m::conf::patchPath   = isProject ? u::fs::getUpDir(u::fs::getUpDir(path)) : u::fs::dirname(path);
+	m::patch::patch.name = name;
 	u::log::print("[savePatch] patch saved as %s\n", path.c_str());
 	return true;
 }
@@ -168,7 +169,7 @@ void loadPatch(void* data)
 
 	browser->showStatusBar();
 
-	u::log::print("[glue] loading %s...\n", fullPath.c_str());
+	u::log::print("[loadPatch] load from %s\n", fullPath.c_str());
 
 	std::string fileToLoad = fullPath;  // patch file to read from
 	std::string basePath   = "";        // base path, in case of reading from a project
@@ -177,52 +178,44 @@ void loadPatch(void* data)
 		basePath   = fullPath + G_SLASH;
 	}
 
-	/* Verify that the patch file is valid first. */
+	/* Read the patch from file. */
 
-	int ver = m::patch::verify(fileToLoad);	
-	if (ver != G_PATCH_OK) {
-		if (ver == G_PATCH_UNREADABLE)
+	int res = m::patch::read(fileToLoad, basePath);
+	if (res != G_PATCH_OK) {
+		if (res == G_PATCH_UNREADABLE)
 			v::gdAlert("This patch is unreadable.");
 		else
-		if (ver == G_PATCH_INVALID)
+		if (res == G_PATCH_INVALID)
 			v::gdAlert("This patch is not valid.");
 		else
-		if (ver == G_PATCH_UNSUPPORTED)
+		if (res == G_PATCH_UNSUPPORTED)
 			v::gdAlert("This patch format is no longer supported.");
 		browser->hideStatusBar();
 		return;
-	}
+	}	
 
-	/* Then reset the system and read the patch. */
+	/* Then reset the system (it disables mixer) and fill the model. */
 
 	m::init::reset();
+	m::model::load(m::patch::patch);
 
-	if (m::patch::read(fileToLoad, basePath) != G_PATCH_OK) {
-		v::gdAlert("This patch is unreadable.");
-		m::mixer::enable();
-		return;
-	}
-
-	/* Prepare Mixer and Recorder. The latter has to recompute the actions 
-	positions if the current samplerate != patch samplerate. */
+	/* Prepare the engine. Recorder has to recompute the actions positions if 
+	the current samplerate != patch samplerate. Clock needs to update frames
+	in sequencer. */
 
 	m::mh::updateSoloCount();
-	m::recorderHandler::updateSamplerate(m::conf::samplerate, m::patch::samplerate);
-
-	/* Save patchPath by taking the last dir of the broswer, in order to reuse
-	it the next time. */
-
-	m::conf::patchPath = u::fs::dirname(fullPath);
+	m::recorderHandler::updateSamplerate(m::conf::samplerate, m::patch::patch.samplerate);
+	m::clock::recomputeFrames();
 
 	/* Mixer is ready to go back online. */
 
 	m::mixer::enable();
 
-	/* Update Main Window's title. */
+	/* Utilities and cosmetics. Save patchPath by taking the last dir of the 
+	broswer, in order to reuse it the next time. Also update UI. */
 
-	u::gui::updateMainWinLabel(m::patch::name);
-
-	u::log::print("[glue] patch loaded successfully\n");
+	m::conf::patchPath = u::fs::dirname(fullPath);
+	u::gui::updateMainWinLabel(m::patch::patch.name);
 
 #ifdef WITH_VST
 

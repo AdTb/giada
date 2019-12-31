@@ -64,10 +64,10 @@ kernelAudio::JackState jackStatePrev_;
 
 /* -------------------------------------------------------------------------- */
 
-/* updateFrameBars
-Updates bpm, frames, beats and so on. */
+/* recomputeFrames_
+Updates bpm, frames, beats and so on. Private version. */
 
-void updateFrameBars_(model::Clock& c)
+void recomputeFrames_(model::Clock& c)
 {
 	c.framesInLoop = (conf::samplerate * (60.0f / c.bpm)) * c.beats;
 	c.framesInBar  = c.framesInLoop / (float) c.bars;
@@ -95,8 +95,17 @@ void init(int sampleRate, float midiTCfps)
 		c.beats    = G_DEFAULT_BEATS;
 		c.bpm      = G_DEFAULT_BPM;
 		c.quantize = G_DEFAULT_QUANTIZE;
-		updateFrameBars_(c);
+		recomputeFrames_(c);
 	});
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+
+void recomputeFrames()
+{
+	model::onSwap(model::clock, [&](model::Clock& c) { recomputeFrames_(c);	});
 }
 
 
@@ -177,7 +186,7 @@ void setBpm(float b)
 	model::onSwap(model::clock, [&](model::Clock& c)
 	{
 		c.bpm = b;
-		updateFrameBars_(c);
+		recomputeFrames_(c);
 	});
 }
 
@@ -191,7 +200,7 @@ void setBeats(int newBeats, int newBars)
 	{
 		c.beats = newBeats;
 		c.bars  = newBars;
-		updateFrameBars_(c);
+		recomputeFrames_(c);
 	});
 }
 
@@ -201,7 +210,7 @@ void setQuantize(int q)
 	model::onSwap(model::clock, [&](model::Clock& c)
 	{
 		c.quantize = q;	
-		updateFrameBars_(c);
+		recomputeFrames_(c);
 	});
 }
 

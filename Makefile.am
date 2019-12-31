@@ -79,6 +79,8 @@ sourcesCore =                               \
 	src/core/channels/midiChannelProc.cpp   \
 	src/core/model/model.h                  \
 	src/core/model/model.cpp                \
+	src/core/model/storage.h                \
+	src/core/model/storage.cpp              \
 	src/core/idManager.h                    \
 	src/core/idManager.cpp                  \
 	src/glue/main.h                         \

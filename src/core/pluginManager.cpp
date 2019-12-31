@@ -258,7 +258,27 @@ std::unique_ptr<Plugin> makePlugin(const Plugin& src)
 /* -------------------------------------------------------------------------- */
 
 
-std::unique_ptr<Plugin> makePlugin(const patch::Plugin& p)
+const patch::Plugin& serializePlugin(const Plugin& p)
+{
+	patch::Plugin pp;
+	pp.id     = p.id;
+	pp.path   = p.getUniqueId();
+	pp.bypass = p.isBypassed();
+
+	for (int i = 0; i < p.getNumParameters(); i++)
+		pp.params.push_back(p.getParameter(i));
+
+	for (uint32_t param : p.midiInParams)
+		pp.midiInParams.push_back(param);
+
+	return pp;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+
+std::unique_ptr<Plugin> deserializePlugin(const patch::Plugin& p)
 {
 	std::unique_ptr<Plugin> plugin = makePlugin(p.path, p.id);
 	if (!plugin->valid)

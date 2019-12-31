@@ -144,7 +144,7 @@ void initGUI_(int argc, char** argv)
 	G_MainWin->resize(conf::mainWindowX, conf::mainWindowY, conf::mainWindowW,
 		conf::mainWindowH);
 
-	u::gui::updateMainWinLabel(patch::name == "" ? G_DEFAULT_PATCH_NAME : patch::name);
+	u::gui::updateMainWinLabel(patch::patch.name == "" ? G_DEFAULT_PATCH_NAME : patch::patch.name);
 	
 	if (!kernelAudio::isReady())
 		v::gdAlert("Your soundcard isn't configured correctly.\n"

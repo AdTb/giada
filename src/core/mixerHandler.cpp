@@ -537,7 +537,7 @@ void finalizeInputRec()
 
 		/* Create a new Wave with audio coming from Mixer's virtual input. */
 
-		std::string filename = "TAKE-" + std::to_string(patch::lastTakeId++) + ".wav";
+		std::string filename = "TAKE-" + std::to_string(patch::patch.lastTakeId++) + ".wav";
 	
 		std::unique_ptr<Wave> wave = waveManager::createEmpty(clock::getFramesInLoop(), 
 			G_MAX_IO_CHANS, conf::samplerate, filename);

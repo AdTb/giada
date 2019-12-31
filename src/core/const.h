@@ -310,6 +310,7 @@ constexpr auto PATCH_KEY_CHANNEL_KEY                  = "key";
 constexpr auto PATCH_KEY_CHANNEL_MODE                 = "mode";
 constexpr auto PATCH_KEY_CHANNEL_BEGIN                = "begin";
 constexpr auto PATCH_KEY_CHANNEL_END                  = "end";
+constexpr auto PATCH_KEY_CHANNEL_SHIFT                = "shift";
 constexpr auto PATCH_KEY_CHANNEL_HAS_ACTIONS          = "has_actions";
 constexpr auto PATCH_KEY_CHANNEL_READ_ACTIONS         = "read_actions";
 constexpr auto PATCH_KEY_CHANNEL_PITCH                = "pitch";

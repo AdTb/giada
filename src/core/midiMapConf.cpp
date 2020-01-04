@@ -25,16 +25,20 @@
  * -------------------------------------------------------------------------- */
 
 
+#include <fstream>
 #include <vector>
 #include <string>
 #include <cstring>
 #include <dirent.h>
+#include "deps/json/single_include/nlohmann/json.hpp"
 #include "utils/string.h"
 #include "utils/log.h"
 #include "utils/fs.h"
-#include "utils/json.h"
 #include "const.h"
 #include "midiMapConf.h"
+
+
+namespace nl = nlohmann;
 
 
 namespace giada {
@@ -43,24 +47,16 @@ namespace midimap
 {
 namespace
 {
-bool readInitCommands_(json_t* j)
+bool readInitCommands_(const nl::json& j)
 {
-	namespace uj = u::json;
+	if (j.find(MIDIMAP_KEY_INIT_COMMANDS) == j.end())
+		return false;
 
-	json_t* jcs = json_object_get(j, MIDIMAP_KEY_INIT_COMMANDS);
-	if (jcs == nullptr)
-    	return false;
-
-	size_t  i;
-	json_t* jc;
-	json_array_foreach(jcs, i, jc) {
-
-		if (!uj::isObject(jc))
-			return false;
-
+	for (const auto& jc : j[MIDIMAP_KEY_INIT_COMMANDS])
+	{
 		Message m;
-		m.channel  = uj::readInt   (jc, MIDIMAP_KEY_CHANNEL);
-		m.valueStr = uj::readString(jc, MIDIMAP_KEY_MESSAGE);
+		m.channel  = jc[MIDIMAP_KEY_CHANNEL];
+		m.valueStr = jc[MIDIMAP_KEY_MESSAGE];
 		m.value    = strtoul(m.valueStr.c_str(), nullptr, 16);
 
 		initCommands.push_back(m);
@@ -73,16 +69,15 @@ bool readInitCommands_(json_t* j)
 /* -------------------------------------------------------------------------- */
 
 
-bool readCommand_(json_t* j, Message& m, const std::string& key)
+bool readCommand_(const nl::json& j, Message& m, const std::string& key)
 {
-	namespace uj = u::json;
-
-	json_t* jc = json_object_get(j, key.c_str());
-	if (jc == nullptr)
+	if (j.find(key) == j.end())
 		return false;
 
-	m.channel  = uj::readInt   (jc, MIDIMAP_KEY_CHANNEL);
-	m.valueStr = uj::readString(jc, MIDIMAP_KEY_MESSAGE);
+	const nl::json& jc = j[key];
+
+	m.channel  = jc[MIDIMAP_KEY_CHANNEL];
+	m.valueStr = jc[MIDIMAP_KEY_MESSAGE];
 
 	return true;
 }
@@ -247,8 +242,6 @@ bool isDefined(const Message& m)
 
 int read(const std::string& file)
 {
-	namespace uj = u::json;
-
 	if (file.empty()) {
 		u::log::print("[midiMapConf::read] midimap not specified, nothing to do\n");
 		return MIDIMAP_NOT_SPECIFIED;
@@ -256,12 +249,14 @@ int read(const std::string& file)
 
 	u::log::print("[midiMapConf::read] reading midimap file '%s'\n", file.c_str());
 
-	json_t* j = uj::load(std::string(midimapsPath + file).c_str());
-	if (j == nullptr)
+	std::ifstream ifs(midimapsPath + file);
+	if (!ifs.good())
 		return MIDIMAP_UNREADABLE;
 
-	brand  = uj::readString(j, MIDIMAP_KEY_BRAND);
-	device = uj::readString(j, MIDIMAP_KEY_DEVICE);
+	nl::json j = nl::json::parse(ifs);
+
+	brand  = j[MIDIMAP_KEY_BRAND];
+	device = j[MIDIMAP_KEY_DEVICE];
 	
 	if (!readInitCommands_(j)) return MIDIMAP_UNREADABLE;
 	if (readCommand_(j, muteOn,           MIDIMAP_KEY_MUTE_ON))  parse_(muteOn);

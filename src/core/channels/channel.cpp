@@ -192,9 +192,9 @@ void Channel::sendMidiLmute()
 	if (!midiOutL || midiOutLmute == 0x0)
 		return;
 	if (mute)
-		kernelMidi::sendMidiLightning(midiOutLmute, midimap::muteOn);
+		kernelMidi::sendMidiLightning(midiOutLmute, midimap::midimap.muteOn);
 	else
-		kernelMidi::sendMidiLightning(midiOutLmute, midimap::muteOff);
+		kernelMidi::sendMidiLightning(midiOutLmute, midimap::midimap.muteOff);
 }
 
 
@@ -206,9 +206,9 @@ void Channel::sendMidiLsolo()
 	if (!midiOutL || midiOutLsolo == 0x0)
 		return;
 	if (solo)
-		kernelMidi::sendMidiLightning(midiOutLsolo, midimap::soloOn);
+		kernelMidi::sendMidiLightning(midiOutLsolo, midimap::midimap.soloOn);
 	else
-		kernelMidi::sendMidiLightning(midiOutLsolo, midimap::soloOff);
+		kernelMidi::sendMidiLightning(midiOutLsolo, midimap::midimap.soloOff);
 }
 
 
@@ -221,20 +221,20 @@ void Channel::sendMidiLstatus()
 		return;
 	switch (playStatus) {
 		case ChannelStatus::OFF:
-			kernelMidi::sendMidiLightning(midiOutLplaying, midimap::stopped);
+			kernelMidi::sendMidiLightning(midiOutLplaying, midimap::midimap.stopped);
 			break;
 		case ChannelStatus::WAIT:
-			kernelMidi::sendMidiLightning(midiOutLplaying, midimap::waiting);
+			kernelMidi::sendMidiLightning(midiOutLplaying, midimap::midimap.waiting);
 			break;
 		case ChannelStatus::ENDING:
-			kernelMidi::sendMidiLightning(midiOutLplaying, midimap::stopping);
+			kernelMidi::sendMidiLightning(midiOutLplaying, midimap::midimap.stopping);
 			break;
 		case ChannelStatus::PLAY:
 			if ((mixer::isChannelAudible(this) && !mute) || 
-				!midimap::isDefined(midimap::playingInaudible))
-				kernelMidi::sendMidiLightning(midiOutLplaying, midimap::playing);
+				!midimap::isDefined(midimap::midimap.playingInaudible))
+				kernelMidi::sendMidiLightning(midiOutLplaying, midimap::midimap.playing);
 			else
-				kernelMidi::sendMidiLightning(midiOutLplaying, midimap::playingInaudible);
+				kernelMidi::sendMidiLightning(midiOutLplaying, midimap::midimap.playingInaudible);
 			break;
 		default:
 			break;

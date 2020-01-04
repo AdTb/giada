@@ -59,7 +59,7 @@ bool readInitCommands_(const nl::json& j)
 		m.valueStr = jc[MIDIMAP_KEY_MESSAGE];
 		m.value    = strtoul(m.valueStr.c_str(), nullptr, 16);
 
-		initCommands.push_back(m);
+		midimap.initCommands.push_back(m);
 	}
 
 	return true;
@@ -127,21 +127,8 @@ void parse_(Message& message)
 /* -------------------------------------------------------------------------- */
 
 
-
-std::string brand;
-std::string device;
-std::vector<Message> initCommands;
-Message muteOn;
-Message muteOff;
-Message soloOn;
-Message soloOff;
-Message waiting;
-Message playing;
-Message stopping;
-Message stopped;
-Message playingInaudible;
-
-std::string midimapsPath;
+MidiMap                  midimap;
+std::string              midimapsPath;
 std::vector<std::string> maps;
 
 
@@ -187,44 +174,7 @@ void init()
 
 void setDefault()
 {
-	brand  = "";
-	device = "";
-	muteOn.channel    = 0;
-	muteOn.valueStr   = "";
-	muteOn.offset     = -1;
-	muteOn.value      = 0;
-	muteOff.channel   = 0;
-	muteOff.valueStr  = "";
-	muteOff.offset    = -1;
-	muteOff.value     = 0;
-	soloOn.channel    = 0;
-	soloOn.valueStr   = "";
-	soloOn.offset     = -1;
-	soloOn.value      = 0;
-	soloOff.channel   = 0;
-	soloOff.valueStr  = "";
-	soloOff.offset    = -1;
-	soloOff.value     = 0;
-	waiting.channel   = 0;
-	waiting.valueStr  = "";
-	waiting.offset    = -1;
-	waiting.value     = 0;
-	playing.channel   = 0;
-	playing.valueStr  = "";
-	playing.offset    = -1;
-	playing.value     = 0;
-	stopping.channel  = 0;
-	stopping.valueStr = "";
-	stopping.offset   = -1;
-	stopping.value    = 0;
-	stopped.channel   = 0;
-	stopped.valueStr  = "";
-	stopped.offset    = -1;
-	stopped.value     = 0;
-	playingInaudible.channel   = 0;
-	playingInaudible.valueStr  = "";
-	playingInaudible.offset    = -1;
-	playingInaudible.value     = 0;
+	midimap = MidiMap();
 }
 
 
@@ -255,19 +205,19 @@ int read(const std::string& file)
 
 	nl::json j = nl::json::parse(ifs);
 
-	brand  = j[MIDIMAP_KEY_BRAND];
-	device = j[MIDIMAP_KEY_DEVICE];
+	midimap.brand  = j[MIDIMAP_KEY_BRAND];
+	midimap.device = j[MIDIMAP_KEY_DEVICE];
 	
 	if (!readInitCommands_(j)) return MIDIMAP_UNREADABLE;
-	if (readCommand_(j, muteOn,           MIDIMAP_KEY_MUTE_ON))  parse_(muteOn);
-	if (readCommand_(j, muteOff,          MIDIMAP_KEY_MUTE_OFF)) parse_(muteOff);
-	if (readCommand_(j, soloOn,           MIDIMAP_KEY_SOLO_ON))  parse_(soloOn);
-	if (readCommand_(j, soloOff,          MIDIMAP_KEY_SOLO_OFF)) parse_(soloOff);
-	if (readCommand_(j, waiting,          MIDIMAP_KEY_WAITING))  parse_(waiting);
-	if (readCommand_(j, playing,          MIDIMAP_KEY_PLAYING))  parse_(playing);
-	if (readCommand_(j, stopping,         MIDIMAP_KEY_STOPPING)) parse_(stopping);
-	if (readCommand_(j, stopped,          MIDIMAP_KEY_STOPPED))  parse_(stopped);
-	if (readCommand_(j, playingInaudible, MIDIMAP_KEY_PLAYING_INAUDIBLE))  parse_(playingInaudible);
+	if (readCommand_(j, midimap.muteOn,           MIDIMAP_KEY_MUTE_ON))  parse_(midimap.muteOn);
+	if (readCommand_(j, midimap.muteOff,          MIDIMAP_KEY_MUTE_OFF)) parse_(midimap.muteOff);
+	if (readCommand_(j, midimap.soloOn,           MIDIMAP_KEY_SOLO_ON))  parse_(midimap.soloOn);
+	if (readCommand_(j, midimap.soloOff,          MIDIMAP_KEY_SOLO_OFF)) parse_(midimap.soloOff);
+	if (readCommand_(j, midimap.waiting,          MIDIMAP_KEY_WAITING))  parse_(midimap.waiting);
+	if (readCommand_(j, midimap.playing,          MIDIMAP_KEY_PLAYING))  parse_(midimap.playing);
+	if (readCommand_(j, midimap.stopping,         MIDIMAP_KEY_STOPPING)) parse_(midimap.stopping);
+	if (readCommand_(j, midimap.stopped,          MIDIMAP_KEY_STOPPED))  parse_(midimap.stopped);
+	if (readCommand_(j, midimap.playingInaudible, MIDIMAP_KEY_PLAYING_INAUDIBLE))  parse_(midimap.playingInaudible);
 
 	return MIDIMAP_READ_OK;
 }

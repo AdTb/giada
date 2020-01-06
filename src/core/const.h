@@ -219,10 +219,10 @@ constexpr int G_PATCH_OK          =  1;
 
 
 /* -- midimap signals ------------------------------------------------------- */
-#define MIDIMAP_NOT_SPECIFIED 0x00
-#define MIDIMAP_UNREADABLE    0x01
-#define MIDIMAP_INVALID       0x02
-#define MIDIMAP_READ_OK       0x04
+constexpr int MIDIMAP_NOT_SPECIFIED = 0x00;
+constexpr int MIDIMAP_UNREADABLE    = 0x01;
+constexpr int MIDIMAP_INVALID       = 0x02;
+constexpr int MIDIMAP_READ_OK       = 0x04;
 
 
 

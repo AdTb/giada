@@ -7,4 +7,4 @@
 	url = https://github.com/catchorg/Catch2.git
 [submodule "src/deps/json"]
 	path = src/deps/json
-	url = git@github.com:nlohmann/json.git
+	url = https://github.com/nlohmann/json.git

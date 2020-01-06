@@ -258,7 +258,7 @@ std::unique_ptr<Plugin> makePlugin(const Plugin& src)
 /* -------------------------------------------------------------------------- */
 
 
-const patch::Plugin& serializePlugin(const Plugin& p)
+const patch::Plugin serializePlugin(const Plugin& p)
 {
 	patch::Plugin pp;
 	pp.id     = p.id;

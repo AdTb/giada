@@ -91,7 +91,7 @@ std::unique_ptr<Plugin> makePlugin(const Plugin& other);
 /* (de)serializePlugin
 Transforms patch data into a Plugin object and vice versa. */
 
-const patch::Plugin&    serializePlugin(const Plugin& p);
+const patch::Plugin     serializePlugin(const Plugin& p);
 std::unique_ptr<Plugin> deserializePlugin(const patch::Plugin& p);
 
 /* getAvailablePluginInfo

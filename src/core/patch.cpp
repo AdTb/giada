@@ -279,7 +279,7 @@ void writeActions_(nl::json& j)
 /* -------------------------------------------------------------------------- */
 
 
-void writeWaves_(nl::json& j, bool isProject)
+void writeWaves_(nl::json& j)
 {
 	j[PATCH_KEY_WAVES] = nl::json::array();
 
@@ -411,7 +411,7 @@ void init()
 /* -------------------------------------------------------------------------- */
 
 
-bool write(const std::string& name, const std::string& file, bool isProject)
+bool write(const std::string& name, const std::string& file)
 {
 	nl::json j;
 
@@ -420,7 +420,7 @@ bool write(const std::string& name, const std::string& file, bool isProject)
 	writeColumns_(j);
 	writeChannels_(j);
 	writeActions_(j);
-	writeWaves_(j, isProject);
+	writeWaves_(j);
 #ifdef WITH_VST
 	writePlugins_(j);
 #endif

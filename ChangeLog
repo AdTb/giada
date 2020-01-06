@@ -11,6 +11,11 @@
 --------------------------------------------------------------------------------
 
 
+0.16.2 ---
+- Switch to Json for modern C++ library for reading and writing Json data
+- Drop support for raw patches (still readable for backward compatibility)
+
+
 0.16.1 --- 2020 . 01 . 08
 - FreeBSD support
 - Ability to remove empty columns manually

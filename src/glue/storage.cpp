@@ -103,17 +103,18 @@ std::string makeUniqueWavePath_(const std::string& base, const m::Wave& w)
 /* -------------------------------------------------------------------------- */
 
 
-bool savePatch_(const std::string& path, const std::string& name, bool isProject)
+bool savePatch_(const std::string& path, const std::string& name)
 {
 	m::model::store(m::patch::patch);
 
-	if (!m::patch::write(name, path, isProject))
+	if (!m::patch::write(name, path))
 		return false;
 
 	u::gui::updateMainWinLabel(name);
-	m::conf::patchPath   = isProject ? u::fs::getUpDir(u::fs::getUpDir(path)) : u::fs::dirname(path);
+	m::conf::patchPath   = u::fs::getUpDir(u::fs::getUpDir(path));
 	m::patch::patch.name = name;
 	u::log::print("[savePatch] patch saved as %s\n", path.c_str());
+
 	return true;
 }
 
@@ -139,32 +140,7 @@ void saveWavesToProject_(const std::string& base)
 /* -------------------------------------------------------------------------- */
 
 
-void savePatch(void* data)
-{
-	v::gdBrowserSave* browser = (v::gdBrowserSave*) data;
-	std::string name          = u::fs::stripExt(browser->getName());
-	std::string fullPath      = browser->getCurrentPath() + G_SLASH + name + ".gptc";
-
-	if (name == "") {
-		v::gdAlert("Please choose a file name.");
-		return;
-	}
-
-	if (u::fs::fileExists(fullPath))
-		if (!v::gdConfirmWin("Warning", "File exists: overwrite?"))
-			return;
-
-	if (savePatch_(fullPath, name, /*isProject=*/false))
-		browser->do_callback();
-	else
-		v::gdAlert("Unable to save the patch!");
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-
-void loadPatch(void* data)
+void loadProject(void* data)
 {
 	v::gdBrowserLoad* browser = (v::gdBrowserLoad*) data;
 	std::string fullPath      = browser->getSelectedItem();
@@ -172,7 +148,7 @@ void loadPatch(void* data)
 
 	browser->showStatusBar();
 
-	u::log::print("[loadPatch] load from %s\n", fullPath.c_str());
+	u::log::print("[loadProject] load from %s\n", fullPath.c_str());
 
 	std::string fileToLoad = fullPath;  // patch file to read from
 	std::string basePath   = "";        // base path, in case of reading from a project
@@ -196,6 +172,9 @@ void loadPatch(void* data)
 		browser->hideStatusBar();
 		return;
 	}	
+
+	if (!isProject)
+		v::gdAlert("Support for raw patches is deprecated\nand will be removed soon!");
 
 	/* Then reset the system (it disables mixer) and fill the model. */
 
@@ -259,7 +238,7 @@ void saveProject(void* data)
 
 	saveWavesToProject_(fullPath);
 
-	if (savePatch_(gptcPath, name, /*isProject=*/true))
+	if (savePatch_(gptcPath, name))
 		browser->do_callback();
 	else
 		v::gdAlert("Unable to save the project!");

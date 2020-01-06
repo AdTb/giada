@@ -172,14 +172,14 @@ Initializes the patch with default values. */
 void init();
 
 /* read
-Reads patch from file. It takes 'basePath' as parameter for Wave reading.*/
+Reads patch from file. It takes 'basePath' as parameter for Wave reading. */
 
 int read(const std::string& file, const std::string& basePath);
 
 /* write
 Writes patch to file. */
 
-bool write(const std::string& name, const std::string& file, bool isProject);
+bool write(const std::string& name, const std::string& file);
 }}};  // giada::m::patch::
 
 

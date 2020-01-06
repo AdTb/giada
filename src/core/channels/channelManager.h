@@ -65,7 +65,7 @@ std::unique_ptr<Channel> create(const Channel& ch);
 Creates a new Channel given the patch raw data and vice versa. */
 
 std::unique_ptr<Channel> deserializeChannel(const patch::Channel& c, int bufferSize);
-patch::Channel serializeChannel(const Channel& c);
+const patch::Channel     serializeChannel(const Channel& c);
 }}}; // giada::m::channelManager
 
 

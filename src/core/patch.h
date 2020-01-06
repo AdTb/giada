@@ -139,14 +139,14 @@ struct Plugin
 
 struct Patch
 {
-	std::string name;
-	int         bars;
-	int         beats;
-	float       bpm;
-	bool        quantize;
-	int         lastTakeId;
-	int         samplerate;   // Original samplerate when the patch was saved
-	bool        metronome;
+	std::string name       = G_DEFAULT_PATCH_NAME;
+	int         bars       = G_DEFAULT_BARS;
+	int         beats      = G_DEFAULT_BEATS;
+	float       bpm        = G_DEFAULT_BPM;
+	bool        quantize   = G_DEFAULT_QUANTIZE;
+	int         lastTakeId = 0;
+	int         samplerate = G_DEFAULT_SAMPLERATE;
+	bool        metronome  = false;
 
 	std::vector<Column>  columns;
 	std::vector<Channel> channels;

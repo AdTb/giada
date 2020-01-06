@@ -171,9 +171,9 @@ std::unique_ptr<Wave> deserializeWave(const patch::Wave& w)
 }
 
 
-patch::Wave serializeWave(const Wave& w)
+const patch::Wave serializeWave(const Wave& w)
 {
-	return { w.id, w.getPath() };
+	return { w.id, u::fs::basename(w.getPath()) };
 }
 
 

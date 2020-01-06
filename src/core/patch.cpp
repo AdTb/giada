@@ -28,6 +28,7 @@
 #include <fstream>
 #include "deps/json/single_include/nlohmann/json.hpp"
 #include "utils/math.h"
+#include "core/mixer.h"
 #include "patch.h"
 
 
@@ -153,7 +154,8 @@ void readActions_(const nl::json& j)
 
 void readChannels_(const nl::json& j)
 {
-	ID id = 0;
+	ID id = mixer::PREVIEW_CHANNEL_ID;
+
 	for (const auto& jchannel : j[PATCH_KEY_CHANNELS]) {
 		Channel c;
 		c.id                = jchannel.value(PATCH_KEY_CHANNEL_ID, ++id);
@@ -212,6 +214,8 @@ void readChannels_(const nl::json& j)
 
 void writePlugins_(nl::json& j)
 {
+	j[PATCH_KEY_PLUGINS] = nl::json::array();
+
 	for (const Plugin& p : patch.plugins) {
 
 		nl::json jplugin;
@@ -238,6 +242,8 @@ void writePlugins_(nl::json& j)
 
 void writeColumns_(nl::json& j)
 {
+	j[PATCH_KEY_COLUMNS] = nl::json::array();
+
 	for (const Column& column : patch.columns) {
 		nl::json jcolumn;
 		jcolumn[PATCH_KEY_COLUMN_ID]    = column.id;
@@ -255,6 +261,8 @@ void writeColumns_(nl::json& j)
 
 void writeActions_(nl::json& j)
 {
+	j[PATCH_KEY_ACTIONS] = nl::json::array();
+
 	for (const Action& a : patch.actions) {
 		nl::json jaction;
 		jaction[G_PATCH_KEY_ACTION_ID]      = a.id;
@@ -273,6 +281,8 @@ void writeActions_(nl::json& j)
 
 void writeWaves_(nl::json& j, bool isProject)
 {
+	j[PATCH_KEY_WAVES] = nl::json::array();
+
 	for (const Wave& w : patch.waves) {
 		nl::json jwave;
 		jwave[PATCH_KEY_WAVE_ID]   = w.id;
@@ -307,6 +317,8 @@ void writeCommons_(nl::json& j, const std::string& name)
 
 void writeChannels_(nl::json& j)
 {
+	j[PATCH_KEY_CHANNELS] = nl::json::array();
+
 	for (const Channel& c : patch.channels) {
 
 		nl::json jchannel;
@@ -392,22 +404,7 @@ bool Version::operator <(const Version& o) const
 
 void init()
 {
-	patch.name       = G_DEFAULT_PATCH_NAME;
-	patch.bars       = G_DEFAULT_BARS;
-	patch.beats      = G_DEFAULT_BEATS;
-	patch.bpm        = G_DEFAULT_BPM;
-	patch.quantize   = G_DEFAULT_QUANTIZE;
-	patch.lastTakeId = 0;
-	patch.samplerate = G_DEFAULT_SAMPLERATE;
-	patch.metronome  = false;
-
-	patch.columns.clear();
-	patch.channels.clear();
-	patch.actions.clear();
-	patch.waves.clear();
-#ifdef WITH_VST
-	patch.plugins.clear();
-#endif
+	patch = Patch();
 }
 
 
@@ -418,6 +415,7 @@ bool write(const std::string& name, const std::string& file, bool isProject)
 {
 	nl::json j;
 
+	init();
 	writeCommons_(j, name);
 	writeColumns_(j);
 	writeChannels_(j);

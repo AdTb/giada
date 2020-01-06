@@ -75,7 +75,7 @@ std::unique_ptr<Wave> createFromWave(const Wave& src, int a, int b);
 Creates a new Wave given the patch raw data and vice versa. */
 
 std::unique_ptr<Wave> deserializeWave(const patch::Wave& w);
-patch::Wave serializeWave(const Wave& w);
+const patch::Wave     serializeWave(const Wave& w);
 
 int resample(Wave& w, int quality, int samplerate); 
 

@@ -105,8 +105,11 @@ std::string makeUniqueWavePath_(const std::string& base, const m::Wave& w)
 
 bool savePatch_(const std::string& path, const std::string& name, bool isProject)
 {
+	m::model::store(m::patch::patch);
+
 	if (!m::patch::write(name, path, isProject))
 		return false;
+
 	u::gui::updateMainWinLabel(name);
 	m::conf::patchPath   = isProject ? u::fs::getUpDir(u::fs::getUpDir(path)) : u::fs::dirname(path);
 	m::patch::patch.name = name;

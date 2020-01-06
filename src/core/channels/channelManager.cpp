@@ -140,7 +140,7 @@ std::unique_ptr<Channel> deserializeChannel(const patch::Channel& pch, int buffe
 /* -------------------------------------------------------------------------- */
 
 
-patch::Channel serializeChannel(const Channel& c)
+const patch::Channel serializeChannel(const Channel& c)
 {
 	patch::Channel pc;
 
@@ -195,6 +195,8 @@ patch::Channel serializeChannel(const Channel& c)
 		const MidiChannel& mc = static_cast<const MidiChannel&>(c);
 		pc.midiOut     = mc.midiOut;
 		pc.midiOutChan = mc.midiOutChan;
-	}	
+	}
+
+	return pc;
 }
 }}}; // giada::m::channelManager

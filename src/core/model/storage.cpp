@@ -63,7 +63,6 @@ void store(patch::Patch& patch)
 
 	for (const Wave* w : waves)
 		patch.waves.push_back(waveManager::serializeWave(*w));
-		//std::string path = isProject ? u::fs::basename(w->getPath()) : w->getPath();
 
 	for (const Channel* c : channels)
 		patch.channels.push_back(channelManager::serializeChannel(*c));

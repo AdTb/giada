@@ -82,7 +82,7 @@ void initConf_()
 	midimap::init();
 	midimap::setDefault();
 	
-	if (!u::log::init(conf::logMode))
+	if (!u::log::init(conf::conf.logMode))
 		u::log::print("[init] log init failed! Using default stdout\n");
 
 	if (midimap::read(conf::midiMapPath) != MIDIMAP_READ_OK)

@@ -48,10 +48,10 @@
 
 /* -- version --------------------------------------------------------------- */
 constexpr auto G_APP_NAME      = "Giada";
-constexpr auto G_VERSION_STR   = "0.16.1";
+constexpr auto G_VERSION_STR   = "0.16.2";
 constexpr int  G_VERSION_MAJOR = 0;
 constexpr int  G_VERSION_MINOR = 16;
-constexpr int  G_VERSION_PATCH = 1;
+constexpr int  G_VERSION_PATCH = 2;
 
 constexpr auto CONF_FILENAME = "giada.conf";
 
@@ -164,11 +164,11 @@ constexpr int   G_DEFAULT_QUANTIZE          = 0;      // quantizer off
 constexpr float G_DEFAULT_FADEOUT_STEP      = 0.01f;  // micro-fadeout speed
 constexpr int   G_DEFAULT_COLUMN_WIDTH      = 380;
 constexpr auto  G_DEFAULT_PATCH_NAME        = "(default patch)";
-constexpr int   G_DEFAULT_MIDI_INPUT_UI_W   = 300;
-constexpr int   G_DEFAULT_MIDI_INPUT_UI_H   = 350;
 constexpr int   G_DEFAULT_ACTION_SIZE       = 8192;  // frames
 constexpr int   G_DEFAULT_ZOOM_RATIO        = 128;
 constexpr float G_DEFAULT_REC_TRIGGER_LEVEL = -10.0f;
+constexpr int   G_DEFAULT_SUBWINDOW_W       = 640;
+constexpr int   G_DEFAULT_SUBWINDOW_H       = 480;
 
 
 
@@ -415,16 +415,6 @@ constexpr auto CONF_KEY_VELOCITY_EDITOR_H        = "velocity_editor_h";
 constexpr auto CONF_KEY_ENVELOPE_EDITOR_H        = "envelope_editor_h";
 constexpr auto CONF_KEY_PLUGIN_LIST_X            = "plugin_list_x";
 constexpr auto CONF_KEY_PLUGIN_LIST_Y            = "plugin_list_y";
-constexpr auto CONF_KEY_CONFIG_X                 = "config_x";
-constexpr auto CONF_KEY_CONFIG_Y                 = "config_y";
-constexpr auto CONF_KEY_BPM_X                    = "bpm_x";
-constexpr auto CONF_KEY_BPM_Y                    = "bpm_y";
-constexpr auto CONF_KEY_BEATS_X                  = "beats_x";
-constexpr auto CONF_KEY_BEATS_Y                  = "beats_y";
-constexpr auto CONF_KEY_ABOUT_X                  = "about_x";
-constexpr auto CONF_KEY_ABOUT_Y                  = "about_y";
-constexpr auto CONF_KEY_NAME_X                   = "name_x";
-constexpr auto CONF_KEY_NAME_Y                   = "name_y";
 constexpr auto CONF_KEY_PLUGIN_CHOOSER_X         = "plugin_chooser_x";
 constexpr auto CONF_KEY_PLUGIN_CHOOSER_Y         = "plugin_chooser_y";
 constexpr auto CONF_KEY_PLUGIN_CHOOSER_W         = "plugin_chooser_w";

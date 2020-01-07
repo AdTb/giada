@@ -55,9 +55,9 @@ std::string confDirPath  = "";
 /* sanitize
 Avoids funky values from config file. */
 
-void sanitize()
+void sanitize_()
 {
-	if (!(soundSystem & G_SYS_API_ANY)) soundSystem = G_DEFAULT_SOUNDSYS;
+	if (!(conf.soundSystem & G_SYS_API_ANY)) conf.soundSystem = G_DEFAULT_SOUNDSYS;
 	if (soundDeviceOut < 0) soundDeviceOut = G_DEFAULT_SOUNDDEV_OUT;
 	if (soundDeviceIn < -1) soundDeviceIn = G_DEFAULT_SOUNDDEV_IN;
 	if (channelsOut < 0) channelsOut = 0;
@@ -89,22 +89,14 @@ void sanitize()
 	if (sampleEditorGridOn < 0) sampleEditorGridOn = 0;
 	if (midiInputX < 0) midiInputX = 0;
 	if (midiInputY < 0) midiInputY = 0;
-	if (midiInputW < G_DEFAULT_MIDI_INPUT_UI_W) midiInputW = G_DEFAULT_MIDI_INPUT_UI_W;
-	if (midiInputH < G_DEFAULT_MIDI_INPUT_UI_H) midiInputH = G_DEFAULT_MIDI_INPUT_UI_H;
-	if (configX < 0) configX = 0;
-	if (configY < 0) configY = 0;
+	if (midiInputW < 640) midiInputW = 640;
+	if (midiInputH < 480) midiInputH = 480;
 	if (pluginListX < 0) pluginListX = 0;
 	if (pluginListY < 0) pluginListY = 0;
 #ifdef WITH_VST
 	if (pluginChooserW < 640) pluginChooserW = 640;
-	if (pluginChooserH < 480) pluginChooserW = 480;
+	if (pluginChooserH < 480) pluginChooserH = 480;
 #endif
-	if (bpmX < 0) bpmX = 0;
-	if (bpmY < 0) bpmY = 0;
-	if (beatsX < 0) beatsX = 0;
-	if (beatsY < 0) beatsY = 0;
-	if (aboutX < 0) aboutX = 0;
-	if (aboutY < 0) aboutY = 0;
 	if (samplerate < 8000) samplerate = G_DEFAULT_SAMPLERATE;
 	if (rsmpQuality < 0 || rsmpQuality > 4) rsmpQuality = 0;
 }
@@ -150,9 +142,8 @@ int createConfigFolder_()
 /* -------------------------------------------------------------------------- */
 
 
-std::string header = "GIADACFG";
+Conf conf;
 
-int  logMode        = LOG_MODE_MUTE;
 int  soundSystem    = G_DEFAULT_SOUNDSYS;
 int  soundDeviceOut = G_DEFAULT_SOUNDDEV_OUT;
 int  soundDeviceIn  = G_DEFAULT_SOUNDDEV_IN;
@@ -172,6 +163,7 @@ int         midiSync    = MIDI_SYNC_NONE;
 float       midiTCfps   = 25.0f;
 
 /* TODO - move these into a RCUList (Engine) */
+
 std::atomic<bool>     midiIn          (false);
 std::atomic<int>      midiInFilter    (-1);
 std::atomic<uint32_t> midiInRewind    (0x0);
@@ -223,8 +215,8 @@ int sampleEditorGridOn  = false;
 
 int midiInputX = 0;
 int midiInputY = 0;
-int midiInputW = G_DEFAULT_MIDI_INPUT_UI_W;
-int midiInputH = G_DEFAULT_MIDI_INPUT_UI_H;
+int midiInputW = 640;
+int midiInputH = 480;
 
 int pianoRollY = -1;
 int pianoRollH = 422;
@@ -235,21 +227,6 @@ int envelopeEditorH     = 40;
 
 int pluginListX = 0;
 int pluginListY = 0;
-
-int configX = 0;
-int configY = 0;
-
-int bpmX = 0;
-int bpmY = 0;
-
-int beatsX = 0;
-int beatsY = 0;
-
-int aboutX = 0;
-int aboutY = 0;
-
-int nameX = 0;
-int nameY = 0;
 
 int   recTriggerMode  = static_cast<int>(RecTriggerMode::NORMAL);
 float recTriggerLevel = G_DEFAULT_REC_TRIGGER_LEVEL;
@@ -270,6 +247,8 @@ int pluginSortMethod = 0;
 
 void init()
 {
+	conf = Conf();
+
 	/* Initialize confFilePath, i.e. the configuration file. In windows it is in
 	 * the same dir of the .exe, while in Linux and OS X in ~/.giada */
 
@@ -309,101 +288,89 @@ bool read()
 
 	nl::json j = nl::json::parse(ifs);
 
-	header           = j[CONF_KEY_HEADER];
-	logMode          = j[CONF_KEY_LOG_MODE];
-	soundSystem      = j[CONF_KEY_SOUND_SYSTEM];
-	soundDeviceOut   = j[CONF_KEY_SOUND_DEVICE_OUT];
-	soundDeviceIn    = j[CONF_KEY_SOUND_DEVICE_IN];
-	channelsOut      = j[CONF_KEY_CHANNELS_OUT];
-	channelsIn       = j[CONF_KEY_CHANNELS_IN];
-	samplerate       = j[CONF_KEY_SAMPLERATE];
-	buffersize       = j[CONF_KEY_BUFFER_SIZE];
-	limitOutput      = j[CONF_KEY_LIMIT_OUTPUT];
-	rsmpQuality      = j[CONF_KEY_RESAMPLE_QUALITY];
-	midiSystem       = j[CONF_KEY_MIDI_SYSTEM];
-	midiPortOut      = j[CONF_KEY_MIDI_PORT_OUT];
-	midiPortIn       = j[CONF_KEY_MIDI_PORT_IN];
-	midiMapPath      = j[CONF_KEY_MIDIMAP_PATH];
-	lastFileMap      = j[CONF_KEY_LAST_MIDIMAP];
-	midiSync         = j[CONF_KEY_MIDI_SYNC];
-	midiTCfps        = j[CONF_KEY_MIDI_TC_FPS];
-	midiIn           = j[CONF_KEY_MIDI_IN];
-	midiInFilter     = j[CONF_KEY_MIDI_IN_FILTER]; 
-	midiInRewind     = j[CONF_KEY_MIDI_IN_REWIND];
-	midiInStartStop  = j[CONF_KEY_MIDI_IN_START_STOP];
-	midiInActionRec  = j[CONF_KEY_MIDI_IN_ACTION_REC];
-	midiInInputRec   = j[CONF_KEY_MIDI_IN_INPUT_REC];
-	midiInMetronome  = j[CONF_KEY_MIDI_IN_METRONOME];
-	midiInVolumeIn   = j[CONF_KEY_MIDI_IN_VOLUME_IN];
-	midiInVolumeOut  = j[CONF_KEY_MIDI_IN_VOLUME_OUT];
-	midiInBeatDouble = j[CONF_KEY_MIDI_IN_BEAT_DOUBLE];
-	midiInBeatHalf   = j[CONF_KEY_MIDI_IN_BEAT_HALF];
-	recsStopOnChanHalt    = j[CONF_KEY_RECS_STOP_ON_CHAN_HALT];
-	chansStopOnSeqHalt    = j[CONF_KEY_CHANS_STOP_ON_SEQ_HALT];
-	treatRecsAsLoops      = j[CONF_KEY_TREAT_RECS_AS_LOOPS];
-	inputMonitorDefaultOn = j[CONF_KEY_INPUT_MONITOR_DEFAULT_ON];
-	pluginPath  = j[CONF_KEY_PLUGINS_PATH];
-	patchPath   = j[CONF_KEY_PATCHES_PATH];
-	samplePath  = j[CONF_KEY_SAMPLES_PATH];
-	mainWindowX = j[CONF_KEY_MAIN_WINDOW_X];
-	mainWindowY = j[CONF_KEY_MAIN_WINDOW_Y];
-	mainWindowW = j[CONF_KEY_MAIN_WINDOW_W];
-	mainWindowH = j[CONF_KEY_MAIN_WINDOW_H];
-	browserX = j[CONF_KEY_BROWSER_X];
-	browserY = j[CONF_KEY_BROWSER_Y];
-	browserW = j[CONF_KEY_BROWSER_W];
-	browserH = j[CONF_KEY_BROWSER_H];
-	browserPosition  = j[CONF_KEY_BROWSER_POSITION];
-	browserLastPath  = j[CONF_KEY_BROWSER_LAST_PATH];
-	browserLastValue = j[CONF_KEY_BROWSER_LAST_VALUE];
-	actionEditorX = j[CONF_KEY_ACTION_EDITOR_X];
-	actionEditorY = j[CONF_KEY_ACTION_EDITOR_Y];
-	actionEditorW = j[CONF_KEY_ACTION_EDITOR_W];
-	actionEditorH = j[CONF_KEY_ACTION_EDITOR_H];
-	actionEditorZoom    = j[CONF_KEY_ACTION_EDITOR_ZOOM];
-	actionEditorGridVal = j[CONF_KEY_ACTION_EDITOR_GRID_VAL];
-	actionEditorGridOn  = j[CONF_KEY_ACTION_EDITOR_GRID_ON];
-	sampleEditorX = j[CONF_KEY_SAMPLE_EDITOR_X];
-	sampleEditorY = j[CONF_KEY_SAMPLE_EDITOR_Y];
-	sampleEditorW = j[CONF_KEY_SAMPLE_EDITOR_W];
-	sampleEditorH = j[CONF_KEY_SAMPLE_EDITOR_H];
-	sampleEditorGridVal = j[CONF_KEY_SAMPLE_EDITOR_GRID_VAL];
-	sampleEditorGridOn  = j[CONF_KEY_SAMPLE_EDITOR_GRID_ON];
-	pianoRollY = j[CONF_KEY_PIANO_ROLL_Y];
-	pianoRollH = j[CONF_KEY_PIANO_ROLL_H];
-	sampleActionEditorH = j[CONF_KEY_SAMPLE_ACTION_EDITOR_H];
-	velocityEditorH = j[CONF_KEY_VELOCITY_EDITOR_H];
-	envelopeEditorH = j[CONF_KEY_ENVELOPE_EDITOR_H];
-	pluginListX = j[CONF_KEY_PLUGIN_LIST_X];
-	pluginListY = j[CONF_KEY_PLUGIN_LIST_Y];
-	configX = j[CONF_KEY_CONFIG_X];
-	configY = j[CONF_KEY_CONFIG_Y];
-	bpmX = j[CONF_KEY_BPM_X];
-	bpmY = j[CONF_KEY_BPM_Y];
-	beatsX = j[CONF_KEY_BEATS_X];
-	beatsY = j[CONF_KEY_BEATS_Y];
-	aboutX = j[CONF_KEY_ABOUT_X];
-	aboutY = j[CONF_KEY_ABOUT_Y];
-	nameX = j[CONF_KEY_NAME_X];
-	nameY = j[CONF_KEY_NAME_Y];
-	midiInputX = j[CONF_KEY_MIDI_INPUT_X];
-	midiInputY = j[CONF_KEY_MIDI_INPUT_Y];
-	midiInputW = j[CONF_KEY_MIDI_INPUT_W];
-	midiInputH = j[CONF_KEY_MIDI_INPUT_H];
-	recTriggerMode  = j[CONF_KEY_REC_TRIGGER_MODE];
-	recTriggerLevel = j[CONF_KEY_REC_TRIGGER_LEVEL];
-
+	conf.logMode               = j[CONF_KEY_LOG_MODE];
+	conf.soundSystem           = j[CONF_KEY_SOUND_SYSTEM];
+	conf.soundDeviceOut        = j[CONF_KEY_SOUND_DEVICE_OUT];
+	conf.soundDeviceIn         = j[CONF_KEY_SOUND_DEVICE_IN];
+	conf.channelsOut           = j[CONF_KEY_CHANNELS_OUT];
+	conf.channelsIn            = j[CONF_KEY_CHANNELS_IN];
+	conf.samplerate            = j[CONF_KEY_SAMPLERATE];
+	conf.buffersize            = j[CONF_KEY_BUFFER_SIZE];
+	conf.limitOutput           = j[CONF_KEY_LIMIT_OUTPUT];
+	conf.rsmpQuality           = j[CONF_KEY_RESAMPLE_QUALITY];
+	conf.midiSystem            = j[CONF_KEY_MIDI_SYSTEM];
+	conf.midiPortOut           = j[CONF_KEY_MIDI_PORT_OUT];
+	conf.midiPortIn            = j[CONF_KEY_MIDI_PORT_IN];
+	conf.midiMapPath           = j[CONF_KEY_MIDIMAP_PATH];
+	conf.lastFileMap           = j[CONF_KEY_LAST_MIDIMAP];
+	conf.midiSync              = j[CONF_KEY_MIDI_SYNC];
+	conf.midiTCfps             = j[CONF_KEY_MIDI_TC_FPS];
+	/*
+	conf.midiIn                = j[CONF_KEY_MIDI_IN];
+	conf.midiInFilter          = j[CONF_KEY_MIDI_IN_FILTER]; 
+	conf.midiInRewind          = j[CONF_KEY_MIDI_IN_REWIND];
+	conf.midiInStartStop       = j[CONF_KEY_MIDI_IN_START_STOP];
+	conf.midiInActionRec       = j[CONF_KEY_MIDI_IN_ACTION_REC];
+	conf.midiInInputRec        = j[CONF_KEY_MIDI_IN_INPUT_REC];
+	conf.midiInMetronome       = j[CONF_KEY_MIDI_IN_METRONOME];
+	conf.midiInVolumeIn        = j[CONF_KEY_MIDI_IN_VOLUME_IN];
+	conf.midiInVolumeOut       = j[CONF_KEY_MIDI_IN_VOLUME_OUT];
+	conf.midiInBeatDouble      = j[CONF_KEY_MIDI_IN_BEAT_DOUBLE];
+	conf.midiInBeatHalf        = j[CONF_KEY_MIDI_IN_BEAT_HALF];
+	*/
+	conf.recsStopOnChanHalt    = j[CONF_KEY_RECS_STOP_ON_CHAN_HALT];
+	conf.chansStopOnSeqHalt    = j[CONF_KEY_CHANS_STOP_ON_SEQ_HALT];
+	conf.treatRecsAsLoops      = j[CONF_KEY_TREAT_RECS_AS_LOOPS];
+	conf.inputMonitorDefaultOn = j[CONF_KEY_INPUT_MONITOR_DEFAULT_ON];
+	conf.pluginPath            = j[CONF_KEY_PLUGINS_PATH];
+	conf.patchPath             = j[CONF_KEY_PATCHES_PATH];
+	conf.samplePath            = j[CONF_KEY_SAMPLES_PATH];
+	conf.mainWindowX           = j[CONF_KEY_MAIN_WINDOW_X];
+	conf.mainWindowY           = j[CONF_KEY_MAIN_WINDOW_Y];
+	conf.mainWindowW           = j[CONF_KEY_MAIN_WINDOW_W];
+	conf.mainWindowH           = j[CONF_KEY_MAIN_WINDOW_H];
+	conf.browserX              = j[CONF_KEY_BROWSER_X];
+	conf.browserY              = j[CONF_KEY_BROWSER_Y];
+	conf.browserW              = j[CONF_KEY_BROWSER_W];
+	conf.browserH              = j[CONF_KEY_BROWSER_H];
+	conf.browserPosition       = j[CONF_KEY_BROWSER_POSITION];
+	conf.browserLastPath       = j[CONF_KEY_BROWSER_LAST_PATH];
+	conf.browserLastValue      = j[CONF_KEY_BROWSER_LAST_VALUE];
+	conf.actionEditorX         = j[CONF_KEY_ACTION_EDITOR_X];
+	conf.actionEditorY         = j[CONF_KEY_ACTION_EDITOR_Y];
+	conf.actionEditorW         = j[CONF_KEY_ACTION_EDITOR_W];
+	conf.actionEditorH         = j[CONF_KEY_ACTION_EDITOR_H];
+	conf.actionEditorZoom      = j[CONF_KEY_ACTION_EDITOR_ZOOM];
+	conf.actionEditorGridVal   = j[CONF_KEY_ACTION_EDITOR_GRID_VAL];
+	conf.actionEditorGridOn    = j[CONF_KEY_ACTION_EDITOR_GRID_ON];
+	conf.sampleEditorX         = j[CONF_KEY_SAMPLE_EDITOR_X];
+	conf.sampleEditorY         = j[CONF_KEY_SAMPLE_EDITOR_Y];
+	conf.sampleEditorW         = j[CONF_KEY_SAMPLE_EDITOR_W];
+	conf.sampleEditorH         = j[CONF_KEY_SAMPLE_EDITOR_H];
+	conf.sampleEditorGridVal   = j[CONF_KEY_SAMPLE_EDITOR_GRID_VAL];
+	conf.sampleEditorGridOn    = j[CONF_KEY_SAMPLE_EDITOR_GRID_ON];
+	conf.pianoRollY            = j[CONF_KEY_PIANO_ROLL_Y];
+	conf.pianoRollH            = j[CONF_KEY_PIANO_ROLL_H];
+	conf.sampleActionEditorH  =  j[CONF_KEY_SAMPLE_ACTION_EDITOR_H];
+	conf.velocityEditorH       = j[CONF_KEY_VELOCITY_EDITOR_H];
+	conf.envelopeEditorH       = j[CONF_KEY_ENVELOPE_EDITOR_H];
+	conf.pluginListX           = j[CONF_KEY_PLUGIN_LIST_X];
+	conf.pluginListY           = j[CONF_KEY_PLUGIN_LIST_Y];
+	conf.midiInputX            = j[CONF_KEY_MIDI_INPUT_X];
+	conf.midiInputY            = j[CONF_KEY_MIDI_INPUT_Y];
+	conf.midiInputW            = j[CONF_KEY_MIDI_INPUT_W];
+	conf.midiInputH            = j[CONF_KEY_MIDI_INPUT_H];
+	conf.recTriggerMode        = j[CONF_KEY_REC_TRIGGER_MODE];
+	conf.recTriggerLevel       = j[CONF_KEY_REC_TRIGGER_LEVEL];
 #ifdef WITH_VST
-
-	pluginChooserX   = j[CONF_KEY_PLUGIN_CHOOSER_X];
-	pluginChooserY   = j[CONF_KEY_PLUGIN_CHOOSER_Y];
-	pluginChooserW   = j[CONF_KEY_PLUGIN_CHOOSER_W];
-	pluginChooserH   = j[CONF_KEY_PLUGIN_CHOOSER_H];
-	pluginSortMethod = j[CONF_KEY_PLUGIN_SORT_METHOD];
-
+	conf.pluginChooserX        = j[CONF_KEY_PLUGIN_CHOOSER_X];
+	conf.pluginChooserY        = j[CONF_KEY_PLUGIN_CHOOSER_Y];
+	conf.pluginChooserW        = j[CONF_KEY_PLUGIN_CHOOSER_W];
+	conf.pluginChooserH        = j[CONF_KEY_PLUGIN_CHOOSER_H];
+	conf.pluginSortMethod      = j[CONF_KEY_PLUGIN_SORT_METHOD];
 #endif
 
-	sanitize();
+	sanitize_();
 
 	return true;
 }
@@ -419,24 +386,25 @@ bool write()
 
 	nl::json j;
 
-	j[CONF_KEY_HEADER] =                    header;
-	j[CONF_KEY_LOG_MODE] =                  logMode;
-	j[CONF_KEY_SOUND_SYSTEM] =              soundSystem;
-	j[CONF_KEY_SOUND_DEVICE_OUT] =          soundDeviceOut;
-	j[CONF_KEY_SOUND_DEVICE_IN] =           soundDeviceIn;
-	j[CONF_KEY_CHANNELS_OUT] =              channelsOut;
-	j[CONF_KEY_CHANNELS_IN] =               channelsIn;
-	j[CONF_KEY_SAMPLERATE] =                samplerate;
-	j[CONF_KEY_BUFFER_SIZE] =               buffersize;
-	j[CONF_KEY_LIMIT_OUTPUT] =              limitOutput;
-	j[CONF_KEY_RESAMPLE_QUALITY] =          rsmpQuality;
-	j[CONF_KEY_MIDI_SYSTEM] =               midiSystem;
-	j[CONF_KEY_MIDI_PORT_OUT] =             midiPortOut;
-	j[CONF_KEY_MIDI_PORT_IN] =              midiPortIn;
-	j[CONF_KEY_MIDIMAP_PATH] =              midiMapPath;
-	j[CONF_KEY_LAST_MIDIMAP] =              lastFileMap;
-	j[CONF_KEY_MIDI_SYNC] =                 midiSync;
-	j[CONF_KEY_MIDI_TC_FPS] =               midiTCfps;
+	j[CONF_KEY_HEADER] =                    "GIADACFG";
+	j[CONF_KEY_LOG_MODE] =                  conf.logMode;
+	j[CONF_KEY_SOUND_SYSTEM] =              conf.soundSystem;
+	j[CONF_KEY_SOUND_DEVICE_OUT] =          conf.soundDeviceOut;
+	j[CONF_KEY_SOUND_DEVICE_IN] =           conf.soundDeviceIn;
+	j[CONF_KEY_CHANNELS_OUT] =              conf.channelsOut;
+	j[CONF_KEY_CHANNELS_IN] =               conf.channelsIn;
+	j[CONF_KEY_SAMPLERATE] =                conf.samplerate;
+	j[CONF_KEY_BUFFER_SIZE] =               conf.buffersize;
+	j[CONF_KEY_LIMIT_OUTPUT] =              conf.limitOutput;
+	j[CONF_KEY_RESAMPLE_QUALITY] =          conf.rsmpQuality;
+	j[CONF_KEY_MIDI_SYSTEM] =               conf.midiSystem;
+	j[CONF_KEY_MIDI_PORT_OUT] =             conf.midiPortOut;
+	j[CONF_KEY_MIDI_PORT_IN] =              conf.midiPortIn;
+	j[CONF_KEY_MIDIMAP_PATH] =              conf.midiMapPath;
+	j[CONF_KEY_LAST_MIDIMAP] =              conf.lastFileMap;
+	j[CONF_KEY_MIDI_SYNC] =                 conf.midiSync;
+	j[CONF_KEY_MIDI_TC_FPS] =               conf.midiTCfps;
+	/*
 	j[CONF_KEY_MIDI_IN] =                   midiIn.load();
 	j[CONF_KEY_MIDI_IN_FILTER] =            midiInFilter.load();
 	j[CONF_KEY_MIDI_IN_REWIND] =            midiInRewind.load();
@@ -448,69 +416,57 @@ bool write()
 	j[CONF_KEY_MIDI_IN_VOLUME_OUT] =        midiInVolumeOut.load();
 	j[CONF_KEY_MIDI_IN_BEAT_DOUBLE] =       midiInBeatDouble.load();
 	j[CONF_KEY_MIDI_IN_BEAT_HALF] =         midiInBeatHalf.load();
-	j[CONF_KEY_RECS_STOP_ON_CHAN_HALT] =    recsStopOnChanHalt;
-	j[CONF_KEY_CHANS_STOP_ON_SEQ_HALT] =    chansStopOnSeqHalt;
-	j[CONF_KEY_TREAT_RECS_AS_LOOPS] =       treatRecsAsLoops;
-	j[CONF_KEY_INPUT_MONITOR_DEFAULT_ON] =  inputMonitorDefaultOn;
-	j[CONF_KEY_PLUGINS_PATH] =              pluginPath;
-	j[CONF_KEY_PATCHES_PATH] =              patchPath;
-	j[CONF_KEY_SAMPLES_PATH] =              samplePath;
-	j[CONF_KEY_MAIN_WINDOW_X] =             mainWindowX;
-	j[CONF_KEY_MAIN_WINDOW_Y] =             mainWindowY;
-	j[CONF_KEY_MAIN_WINDOW_W] =             mainWindowW;
-	j[CONF_KEY_MAIN_WINDOW_H] =             mainWindowH;
-	j[CONF_KEY_BROWSER_X] =                 browserX;
-	j[CONF_KEY_BROWSER_Y] =                 browserY;
-	j[CONF_KEY_BROWSER_W] =                 browserW;
-	j[CONF_KEY_BROWSER_H] =                 browserH;
-	j[CONF_KEY_BROWSER_POSITION] =          browserPosition;
-	j[CONF_KEY_BROWSER_LAST_PATH] =         browserLastPath;
-	j[CONF_KEY_BROWSER_LAST_VALUE] =        browserLastValue;
-	j[CONF_KEY_ACTION_EDITOR_X] =           actionEditorX;
-	j[CONF_KEY_ACTION_EDITOR_Y] =           actionEditorY;
-	j[CONF_KEY_ACTION_EDITOR_W] =           actionEditorW;
-	j[CONF_KEY_ACTION_EDITOR_H] =           actionEditorH;
-	j[CONF_KEY_ACTION_EDITOR_ZOOM] =        actionEditorZoom;
-	j[CONF_KEY_ACTION_EDITOR_GRID_VAL] =    actionEditorGridVal;
-	j[CONF_KEY_ACTION_EDITOR_GRID_ON] =     actionEditorGridOn;
-	j[CONF_KEY_SAMPLE_EDITOR_X] =           sampleEditorX;
-	j[CONF_KEY_SAMPLE_EDITOR_Y] =           sampleEditorY;
-	j[CONF_KEY_SAMPLE_EDITOR_W] =           sampleEditorW;
-	j[CONF_KEY_SAMPLE_EDITOR_H] =           sampleEditorH;
-	j[CONF_KEY_SAMPLE_EDITOR_GRID_VAL] =    sampleEditorGridVal;
-	j[CONF_KEY_SAMPLE_EDITOR_GRID_ON] =     sampleEditorGridOn;
-	j[CONF_KEY_PIANO_ROLL_Y] =              pianoRollY;
-	j[CONF_KEY_PIANO_ROLL_H] =              pianoRollH;
-	j[CONF_KEY_SAMPLE_ACTION_EDITOR_H]    = sampleActionEditorH;
-	j[CONF_KEY_VELOCITY_EDITOR_H]         = velocityEditorH;
-	j[CONF_KEY_ENVELOPE_EDITOR_H]         = envelopeEditorH;
-	j[CONF_KEY_PLUGIN_LIST_X]             = pluginListX;
-	j[CONF_KEY_PLUGIN_LIST_Y]             = pluginListY;
-	j[CONF_KEY_CONFIG_X]                  = configX;
-	j[CONF_KEY_CONFIG_Y]                  = configY;
-	j[CONF_KEY_BPM_X]                     = bpmX;
-	j[CONF_KEY_BPM_Y]                     = bpmY;
-	j[CONF_KEY_BEATS_X]                   = beatsX;
-	j[CONF_KEY_BEATS_Y]                   = beatsY;
-	j[CONF_KEY_ABOUT_X]                   = aboutX;
-	j[CONF_KEY_ABOUT_Y]                   = aboutY;
-	j[CONF_KEY_NAME_X]                    = nameX;
-	j[CONF_KEY_NAME_Y]                    = nameY;
-	j[CONF_KEY_MIDI_INPUT_X]              = midiInputX;
-	j[CONF_KEY_MIDI_INPUT_Y]              = midiInputY;
-	j[CONF_KEY_MIDI_INPUT_W]              = midiInputW;
-	j[CONF_KEY_MIDI_INPUT_H]              = midiInputH;
-	j[CONF_KEY_REC_TRIGGER_MODE]          = recTriggerMode;
-	j[CONF_KEY_REC_TRIGGER_LEVEL]         = recTriggerLevel;
-
+	*/
+	j[CONF_KEY_RECS_STOP_ON_CHAN_HALT]    = conf.recsStopOnChanHalt;
+	j[CONF_KEY_CHANS_STOP_ON_SEQ_HALT]    = conf.chansStopOnSeqHalt;
+	j[CONF_KEY_TREAT_RECS_AS_LOOPS]       = conf.treatRecsAsLoops;
+	j[CONF_KEY_INPUT_MONITOR_DEFAULT_ON]  = conf.inputMonitorDefaultOn;
+	j[CONF_KEY_PLUGINS_PATH]              = conf.pluginPath;
+	j[CONF_KEY_PATCHES_PATH]              = conf.patchPath;
+	j[CONF_KEY_SAMPLES_PATH]              = conf.samplePath;
+	j[CONF_KEY_MAIN_WINDOW_X]             = conf.mainWindowX;
+	j[CONF_KEY_MAIN_WINDOW_Y]             = conf.mainWindowY;
+	j[CONF_KEY_MAIN_WINDOW_W]             = conf.mainWindowW;
+	j[CONF_KEY_MAIN_WINDOW_H]             = conf.mainWindowH;
+	j[CONF_KEY_BROWSER_X]                 = conf.browserX;
+	j[CONF_KEY_BROWSER_Y]                 = conf.browserY;
+	j[CONF_KEY_BROWSER_W]                 = conf.browserW;
+	j[CONF_KEY_BROWSER_H]                 = conf.browserH;
+	j[CONF_KEY_BROWSER_POSITION]          = conf.browserPosition;
+	j[CONF_KEY_BROWSER_LAST_PATH]         = conf.browserLastPath;
+	j[CONF_KEY_BROWSER_LAST_VALUE]        = conf.browserLastValue;
+	j[CONF_KEY_ACTION_EDITOR_X]           = conf.actionEditorX;
+	j[CONF_KEY_ACTION_EDITOR_Y]           = conf.actionEditorY;
+	j[CONF_KEY_ACTION_EDITOR_W]           = conf.actionEditorW;
+	j[CONF_KEY_ACTION_EDITOR_H]           = conf.actionEditorH;
+	j[CONF_KEY_ACTION_EDITOR_ZOOM]        = conf.actionEditorZoom;
+	j[CONF_KEY_ACTION_EDITOR_GRID_VAL]    = conf.actionEditorGridVal;
+	j[CONF_KEY_ACTION_EDITOR_GRID_ON]     = conf.actionEditorGridOn;
+	j[CONF_KEY_SAMPLE_EDITOR_X]           = conf.sampleEditorX;
+	j[CONF_KEY_SAMPLE_EDITOR_Y]           = conf.sampleEditorY;
+	j[CONF_KEY_SAMPLE_EDITOR_W]           = conf.sampleEditorW;
+	j[CONF_KEY_SAMPLE_EDITOR_H]           = conf.sampleEditorH;
+	j[CONF_KEY_SAMPLE_EDITOR_GRID_VAL]    = conf.sampleEditorGridVal;
+	j[CONF_KEY_SAMPLE_EDITOR_GRID_ON]     = conf.sampleEditorGridOn;
+	j[CONF_KEY_PIANO_ROLL_Y]              = conf.pianoRollY;
+	j[CONF_KEY_PIANO_ROLL_H]              = conf.pianoRollH;
+	j[CONF_KEY_SAMPLE_ACTION_EDITOR_H]    = conf.sampleActionEditorH;
+	j[CONF_KEY_VELOCITY_EDITOR_H]         = conf.velocityEditorH;
+	j[CONF_KEY_ENVELOPE_EDITOR_H]         = conf.envelopeEditorH;
+	j[CONF_KEY_PLUGIN_LIST_X]             = conf.pluginListX;
+	j[CONF_KEY_PLUGIN_LIST_Y]             = conf.pluginListY;
+	j[CONF_KEY_MIDI_INPUT_X]              = conf.midiInputX;
+	j[CONF_KEY_MIDI_INPUT_Y]              = conf.midiInputY;
+	j[CONF_KEY_MIDI_INPUT_W]              = conf.midiInputW;
+	j[CONF_KEY_MIDI_INPUT_H]              = conf.midiInputH;
+	j[CONF_KEY_REC_TRIGGER_MODE]          = conf.recTriggerMode;
+	j[CONF_KEY_REC_TRIGGER_LEVEL]         = conf.recTriggerLevel;
 #ifdef WITH_VST
-
-	j[CONF_KEY_PLUGIN_CHOOSER_X]   = pluginChooserX;
-	j[CONF_KEY_PLUGIN_CHOOSER_Y]   = pluginChooserY;
-	j[CONF_KEY_PLUGIN_CHOOSER_W]   = pluginChooserW;
-	j[CONF_KEY_PLUGIN_CHOOSER_H]   = pluginChooserH;
-	j[CONF_KEY_PLUGIN_SORT_METHOD] = pluginSortMethod;
-
+	j[CONF_KEY_PLUGIN_CHOOSER_X]          = conf.pluginChooserX;
+	j[CONF_KEY_PLUGIN_CHOOSER_Y]          = conf.pluginChooserY;
+	j[CONF_KEY_PLUGIN_CHOOSER_W]          = conf.pluginChooserW;
+	j[CONF_KEY_PLUGIN_CHOOSER_H]          = conf.pluginChooserH;
+	j[CONF_KEY_PLUGIN_SORT_METHOD]        = conf.pluginSortMethod;
 #endif
 
     std::ofstream ofs(confFilePath);

@@ -46,8 +46,8 @@ namespace conf
 {
 namespace
 {
-std::string confFilePath = "";
-std::string confDirPath  = "";
+std::string confFilePath_ = "";
+std::string confDirPath_  = "";
 
 
 /* -------------------------------------------------------------------------- */
@@ -57,6 +57,7 @@ Avoids funky values from config file. */
 
 void sanitize_()
 {
+	/*
 	if (!(conf.soundSystem & G_SYS_API_ANY)) conf.soundSystem = G_DEFAULT_SOUNDSYS;
 	if (soundDeviceOut < 0) soundDeviceOut = G_DEFAULT_SOUNDDEV_OUT;
 	if (soundDeviceIn < -1) soundDeviceIn = G_DEFAULT_SOUNDDEV_IN;
@@ -99,6 +100,7 @@ void sanitize_()
 #endif
 	if (samplerate < 8000) samplerate = G_DEFAULT_SAMPLERATE;
 	if (rsmpQuality < 0 || rsmpQuality > 4) rsmpQuality = 0;
+	*/
 }
 
 
@@ -113,12 +115,12 @@ int createConfigFolder_()
 {
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
 
-	if (u::fs::dirExists(confDirPath))
+	if (u::fs::dirExists(confDirPath_))
 		return 1;
 
 	u::log::print("[conf::createConfigFolder] .giada folder not present. Updating...\n");
 
-	if (u::fs::mkdir(confDirPath)) {
+	if (u::fs::mkdir(confDirPath_)) {
 		u::log::print("[conf::createConfigFolder] status: ok\n");
 		return 1;
 	}
@@ -144,103 +146,6 @@ int createConfigFolder_()
 
 Conf conf;
 
-int  soundSystem    = G_DEFAULT_SOUNDSYS;
-int  soundDeviceOut = G_DEFAULT_SOUNDDEV_OUT;
-int  soundDeviceIn  = G_DEFAULT_SOUNDDEV_IN;
-int  channelsOut    = 0;
-int  channelsIn     = 0;
-int  samplerate     = G_DEFAULT_SAMPLERATE;
-int  buffersize     = G_DEFAULT_BUFSIZE;
-bool limitOutput    = false;
-int  rsmpQuality    = 0;
-
-int         midiSystem  = 0;
-int         midiPortOut = G_DEFAULT_MIDI_PORT_OUT;
-int         midiPortIn  = G_DEFAULT_MIDI_PORT_IN;
-std::string midiMapPath = "";
-std::string lastFileMap = "";
-int         midiSync    = MIDI_SYNC_NONE;
-float       midiTCfps   = 25.0f;
-
-/* TODO - move these into a RCUList (Engine) */
-
-std::atomic<bool>     midiIn          (false);
-std::atomic<int>      midiInFilter    (-1);
-std::atomic<uint32_t> midiInRewind    (0x0);
-std::atomic<uint32_t> midiInStartStop (0x0);
-std::atomic<uint32_t> midiInActionRec (0x0);
-std::atomic<uint32_t> midiInInputRec  (0x0);
-std::atomic<uint32_t> midiInVolumeIn  (0x0);
-std::atomic<uint32_t> midiInVolumeOut (0x0);
-std::atomic<uint32_t> midiInBeatDouble(0x0);
-std::atomic<uint32_t> midiInBeatHalf  (0x0);
-std::atomic<uint32_t> midiInMetronome (0x0);
-
-bool recsStopOnChanHalt    = false;
-bool chansStopOnSeqHalt    = false;
-bool treatRecsAsLoops      = false;
-bool inputMonitorDefaultOn = false;
-
-std::string pluginPath = "";
-std::string patchPath  = "";
-std::string samplePath = "";
-
-int mainWindowX = (Fl::w() / 2) - (G_MIN_GUI_WIDTH / 2);
-int mainWindowY = (Fl::h() / 2) - (G_MIN_GUI_HEIGHT / 2);
-int mainWindowW = G_MIN_GUI_WIDTH;
-int mainWindowH = G_MIN_GUI_HEIGHT;
-
-int         browserX         = 0;
-int         browserY         = 0;
-int         browserW         = 640;
-int         browserH         = 480;
-int         browserPosition  = 0;
-int         browserLastValue = 0;
-std::string browserLastPath = "";
-
-int actionEditorX       = 0;
-int actionEditorY       = 0;
-int actionEditorW       = 640;
-int actionEditorH       = 480;
-int actionEditorZoom    = 100;
-int actionEditorGridVal = 1;
-int actionEditorGridOn  = false;
-
-int sampleEditorX = 0;
-int sampleEditorY = 0;
-int sampleEditorW = 640;
-int sampleEditorH = 480;
-int sampleEditorGridVal = 0;
-int sampleEditorGridOn  = false;
-
-int midiInputX = 0;
-int midiInputY = 0;
-int midiInputW = 640;
-int midiInputH = 480;
-
-int pianoRollY = -1;
-int pianoRollH = 422;
-
-int sampleActionEditorH = 40; 
-int velocityEditorH     = 40; 
-int envelopeEditorH     = 40; 
-
-int pluginListX = 0;
-int pluginListY = 0;
-
-int   recTriggerMode  = static_cast<int>(RecTriggerMode::NORMAL);
-float recTriggerLevel = G_DEFAULT_REC_TRIGGER_LEVEL;
-
-#ifdef WITH_VST
-
-int pluginChooserX   = 0;
-int pluginChooserY   = 0;
-int pluginChooserW   = 640;
-int pluginChooserH   = 480;
-int pluginSortMethod = 0;
-
-#endif
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -249,18 +154,18 @@ void init()
 {
 	conf = Conf();
 
-	/* Initialize confFilePath, i.e. the configuration file. In windows it is in
+	/* Initialize confFilePath_, i.e. the configuration file. In windows it is in
 	 * the same dir of the .exe, while in Linux and OS X in ~/.giada */
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
 
-	confFilePath = u::fs::getHomePath() + G_SLASH + CONF_FILENAME;
-	confDirPath  = u::fs::getHomePath() + G_SLASH;
+	confFilePath_ = u::fs::getHomePath() + G_SLASH + CONF_FILENAME;
+	confDirPath_  = u::fs::getHomePath() + G_SLASH;
 
 #elif defined(_WIN32)
 
-	confFilePath = CONF_FILENAME;
-	confDirPath  = "";
+	confFilePath_ = CONF_FILENAME;
+	confDirPath_  = "";
 
 #endif
 }
@@ -271,7 +176,8 @@ void init()
 
 bool isMidiInAllowed(int c)
 {
-	return midiInFilter == -1 || midiInFilter == c;
+	// TODO
+	//return midiInFilter == -1 || midiInFilter == c;
 }
 
 
@@ -282,7 +188,7 @@ bool read()
 {
 	init();
 
-	std::ifstream ifs(confFilePath);
+	std::ifstream ifs(confFilePath_);
 	if (!ifs.good())
 		return false;
 
@@ -459,7 +365,7 @@ bool write()
 	j[CONF_KEY_MIDI_INPUT_Y]              = conf.midiInputY;
 	j[CONF_KEY_MIDI_INPUT_W]              = conf.midiInputW;
 	j[CONF_KEY_MIDI_INPUT_H]              = conf.midiInputH;
-	j[CONF_KEY_REC_TRIGGER_MODE]          = conf.recTriggerMode;
+	j[CONF_KEY_REC_TRIGGER_MODE]          = static_cast<int>(conf.recTriggerMode);
 	j[CONF_KEY_REC_TRIGGER_LEVEL]         = conf.recTriggerLevel;
 #ifdef WITH_VST
 	j[CONF_KEY_PLUGIN_CHOOSER_X]          = conf.pluginChooserX;
@@ -469,7 +375,7 @@ bool write()
 	j[CONF_KEY_PLUGIN_SORT_METHOD]        = conf.pluginSortMethod;
 #endif
 
-    std::ofstream ofs(confFilePath);
+    std::ofstream ofs(confFilePath_);
 	if (!ofs.good()) {
 		u::log::print("[conf::write] unable to write configuration file!\n");
 		return false;

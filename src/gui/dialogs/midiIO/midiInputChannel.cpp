@@ -52,8 +52,8 @@ namespace giada {
 namespace v 
 {
 gdMidiInputChannel::gdMidiInputChannel(ID channelId)
-: gdMidiInputBase(m::conf::midiInputX, m::conf::midiInputY, m::conf::midiInputW, 
-	m::conf::midiInputH, "MIDI Input Setup"),
+: gdMidiInputBase(m::conf::conf.midiInputX, m::conf::conf.midiInputY, m::conf::conf.midiInputW, 
+	m::conf::conf.midiInputH, "MIDI Input Setup"),
   m_channelId    (channelId)
 {
 	m::model::ChannelsLock l(m::model::channels);

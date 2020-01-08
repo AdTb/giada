@@ -108,12 +108,14 @@ void setSampleChannelKey(ID channelId, int k)
 
 void midiLearn(m::MidiEvent e, std::atomic<uint32_t>& param, ID channelId)
 {
+assert(false);
+
 	/* No MIDI learning if we are learning a Channel (channelId != 0) and 
 	the selected MIDI channel is filtered OR if we are learning a global 
 	parameter (channel == 0) and the selected MIDI channel is filtered. */
-
+/*
 	if (channelId == 0) {
-		if (!m::conf::isMidiInAllowed(e.getChannel()))
+		if (!m::conf::conf.isMidiInAllowed(e.getChannel()))
 			return;
 	}
 	else {
@@ -128,6 +130,6 @@ void midiLearn(m::MidiEvent e, std::atomic<uint32_t>& param, ID channelId)
 	Fl::lock();
 	u::gui::refreshSubWindow(WID_MIDI_INPUT);
 	u::gui::refreshSubWindow(WID_MIDI_OUTPUT);
-	Fl::unlock();
+	Fl::unlock();*/
 }
 }}} // giada::c::io::

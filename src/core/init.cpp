@@ -85,7 +85,7 @@ void initConf_()
 	if (!u::log::init(conf::conf.logMode))
 		u::log::print("[init] log init failed! Using default stdout\n");
 
-	if (midimap::read(conf::midiMapPath) != MIDIMAP_READ_OK)
+	if (midimap::read(conf::conf.midiMapPath) != MIDIMAP_READ_OK)
 		u::log::print("[init] MIDI map read failed!\n");
 }
 
@@ -96,14 +96,14 @@ void initConf_()
 void initAudio_()
 {
 	kernelAudio::openDevice();
-	clock::init(conf::samplerate, conf::midiTCfps);
+	clock::init(conf::conf.samplerate, conf::conf.midiTCfps);
 	mh::init();
 	recorder::init();
 	recorderHandler::init();
 
 #ifdef WITH_VST
 
-	pluginManager::init(conf::samplerate, kernelAudio::getRealBufSize());
+	pluginManager::init(conf::conf.samplerate, kernelAudio::getRealBufSize());
 	pluginHost::init(kernelAudio::getRealBufSize());
 
 #endif
@@ -121,9 +121,9 @@ void initAudio_()
 
 void initMIDI_()
 {
-	kernelMidi::setApi(conf::midiSystem);
-	kernelMidi::openOutDevice(conf::midiPortOut);
-	kernelMidi::openInDevice(conf::midiPortIn);	
+	kernelMidi::setApi(conf::conf.midiSystem);
+	kernelMidi::openOutDevice(conf::conf.midiPortOut);
+	kernelMidi::openInDevice(conf::conf.midiPortIn);	
 }
 
 
@@ -141,8 +141,8 @@ void initGUI_(int argc, char** argv)
 #endif
 
 	G_MainWin = new v::gdMainWindow(G_MIN_GUI_WIDTH, G_MIN_GUI_HEIGHT, "", argc, argv);
-	G_MainWin->resize(conf::mainWindowX, conf::mainWindowY, conf::mainWindowW,
-		conf::mainWindowH);
+	G_MainWin->resize(conf::conf.mainWindowX, conf::conf.mainWindowY, conf::conf.mainWindowW,
+		conf::conf.mainWindowH);
 
 	u::gui::updateMainWinLabel(patch::patch.name == "" ? G_DEFAULT_PATCH_NAME : patch::patch.name);
 	
@@ -238,11 +238,11 @@ void reset()
 
 	channelManager::init();
 	waveManager::init();
-	clock::init(conf::samplerate, conf::midiTCfps);
+	clock::init(conf::conf.samplerate, conf::conf.midiTCfps);
 	mh::init();
 	recorder::init();
 #ifdef WITH_VST
-	pluginManager::init(conf::samplerate, kernelAudio::getRealBufSize());
+	pluginManager::init(conf::conf.samplerate, kernelAudio::getRealBufSize());
 #endif
 
 	

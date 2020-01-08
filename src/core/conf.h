@@ -113,8 +113,8 @@ struct Conf
 	int pluginListX;
 	int pluginListY;
 
-	int   recTriggerMode  = static_cast<int>(RecTriggerMode::NORMAL);
-	float recTriggerLevel = G_DEFAULT_REC_TRIGGER_LEVEL;
+	RecTriggerMode recTriggerMode  = RecTriggerMode::NORMAL;
+	float          recTriggerLevel = G_DEFAULT_REC_TRIGGER_LEVEL;
 
 #ifdef WITH_VST
 
@@ -146,76 +146,6 @@ Given a MIDI channel 'c' tells whether this channel should be allowed to receive
 and process MIDI events on MIDI channel 'c'. */
 
 bool isMidiInAllowed(int c);
-
-extern int  soundSystem;
-extern int  soundDeviceOut;
-extern int  soundDeviceIn;
-extern int  channelsOut;
-extern int  channelsIn;
-extern int  samplerate;
-extern int  buffersize;
-extern bool limitOutput;
-extern int  rsmpQuality;
-
-extern int  midiSystem;
-extern int  midiPortOut;
-extern int  midiPortIn;
-extern std::string midiMapPath;
-extern std::string lastFileMap;
-extern int   midiSync;  // see const.h
-extern float midiTCfps;
-
-extern std::atomic<bool>     midiIn;
-extern std::atomic<int>      midiInFilter;
-extern std::atomic<uint32_t> midiInRewind;
-extern std::atomic<uint32_t> midiInStartStop;
-extern std::atomic<uint32_t> midiInActionRec;
-extern std::atomic<uint32_t> midiInInputRec;
-extern std::atomic<uint32_t> midiInMetronome;
-extern std::atomic<uint32_t> midiInVolumeIn;
-extern std::atomic<uint32_t> midiInVolumeOut;
-extern std::atomic<uint32_t> midiInBeatDouble;
-extern std::atomic<uint32_t> midiInBeatHalf;
-
-extern bool recsStopOnChanHalt;
-extern bool chansStopOnSeqHalt;
-extern bool treatRecsAsLoops;
-extern bool inputMonitorDefaultOn;
-
-extern std::string pluginPath;
-extern std::string patchPath;
-extern std::string samplePath;
-
-extern int mainWindowX, mainWindowY, mainWindowW, mainWindowH;
-
-extern int browserX, browserY, browserW, browserH, browserPosition, browserLastValue;
-extern std::string browserLastPath;
-
-extern int actionEditorX, actionEditorY, actionEditorW, actionEditorH, actionEditorZoom;
-extern int actionEditorGridVal;
-extern int actionEditorGridOn;
-
-extern int sampleEditorX, sampleEditorY, sampleEditorW, sampleEditorH;
-extern int sampleEditorGridVal;
-extern int sampleEditorGridOn;
-
-extern int midiInputX, midiInputY, midiInputW, midiInputH;
-
-extern int pianoRollY, pianoRollH;
-extern int sampleActionEditorH; 
-extern int velocityEditorH; 
-extern int envelopeEditorH; 
-extern int pluginListX, pluginListY;
-
-extern int   recTriggerMode;
-extern float recTriggerLevel;
-
-#ifdef WITH_VST
-
-extern int pluginChooserX, pluginChooserY, pluginChooserW, pluginChooserH;
-extern int pluginSortMethod;
-
-#endif
 }}}; // giada::m::conf::
 
 #endif

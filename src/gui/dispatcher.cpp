@@ -125,7 +125,7 @@ void dispatchKey(int event)
 		}
 		else if (Fl::event_key() == FL_Enter && !enter_) {
 			enter_ = true;
-			m::recManager::toggleActionRec(static_cast<RecTriggerMode>(m::conf::recTriggerMode));
+			m::recManager::toggleActionRec(static_cast<RecTriggerMode>(m::conf::conf.recTriggerMode));
 		}
 		else if (Fl::event_key() == ' ' && !space_) {
 			space_ = true;

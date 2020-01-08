@@ -49,10 +49,10 @@ gdMidiInputBase::~gdMidiInputBase()
 {
 	m::midiDispatcher::stopMidiLearn();
 	
-	m::conf::midiInputX = x();
-	m::conf::midiInputY = y();
-	m::conf::midiInputW = w();
-	m::conf::midiInputH = h();
+	m::conf::conf.midiInputX = x();
+	m::conf::conf.midiInputY = y();
+	m::conf::conf.midiInputW = w();
+	m::conf::conf.midiInputH = h();
 }
 
 

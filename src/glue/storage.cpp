@@ -111,7 +111,7 @@ bool savePatch_(const std::string& path, const std::string& name)
 		return false;
 
 	u::gui::updateMainWinLabel(name);
-	m::conf::patchPath   = u::fs::getUpDir(u::fs::getUpDir(path));
+	m::conf::conf.patchPath   = u::fs::getUpDir(u::fs::getUpDir(path));
 	m::patch::patch.name = name;
 	u::log::print("[savePatch] patch saved as %s\n", path.c_str());
 
@@ -186,7 +186,7 @@ void loadProject(void* data)
 	in sequencer. */
 
 	m::mh::updateSoloCount();
-	m::recorderHandler::updateSamplerate(m::conf::samplerate, m::patch::patch.samplerate);
+	m::recorderHandler::updateSamplerate(m::conf::conf.samplerate, m::patch::patch.samplerate);
 	m::clock::recomputeFrames();
 
 	/* Mixer is ready to go back online. */
@@ -196,7 +196,7 @@ void loadProject(void* data)
 	/* Utilities and cosmetics. Save patchPath by taking the last dir of the 
 	broswer, in order to reuse it the next time. Also update UI. */
 
-	m::conf::patchPath = u::fs::dirname(fullPath);
+	m::conf::conf.patchPath = u::fs::dirname(fullPath);
 	u::gui::updateMainWinLabel(m::patch::patch.name);
 
 #ifdef WITH_VST
@@ -260,7 +260,7 @@ void loadSample(void* data)
 	int res = c::channel::loadChannel(browser->getChannelId(), fullPath);
 
 	if (res == G_RES_OK) {
-		m::conf::samplePath = u::fs::dirname(fullPath);
+		m::conf::conf.samplePath = u::fs::dirname(fullPath);
 		browser->do_callback();
 		G_MainWin->delSubWindow(WID_SAMPLE_EDITOR); // if editor is open
 	}
@@ -305,7 +305,7 @@ void saveSample(void* data)
 	
 	/* Update last used path in conf, so that it can be reused next time. */
 
-	m::conf::samplePath = u::fs::dirname(filePath);
+	m::conf::conf.samplePath = u::fs::dirname(filePath);
 
 	/* Update logical and edited states in Wave. */
 

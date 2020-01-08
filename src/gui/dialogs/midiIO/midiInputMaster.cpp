@@ -54,28 +54,31 @@ gdMidiInputMaster::gdMidiInputMaster()
 	groupHeader->resizable(nullptr);
 	groupHeader->end();
 
+//assert(false);
+
 	Fl_Pack* pack = new Fl_Pack(G_GUI_OUTER_MARGIN, groupHeader->y()+groupHeader->h()+G_GUI_OUTER_MARGIN, 
 		LEARNER_WIDTH, 212);
 	pack->spacing(G_GUI_INNER_MARGIN);
 	pack->begin();
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "rewind",           m::conf::midiInRewind,     0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "play/stop",        m::conf::midiInStartStop,  0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "action recording", m::conf::midiInActionRec,  0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "input recording",  m::conf::midiInInputRec,   0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "metronome",        m::conf::midiInMetronome,  0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "input volume",     m::conf::midiInVolumeIn,   0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "output volume",    m::conf::midiInVolumeOut,  0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "sequencer ×2",     m::conf::midiInBeatDouble, 0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "sequencer ÷2",     m::conf::midiInBeatHalf,   0));
+/*
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "rewind",           m::conf::conf.midiInRewind,     0));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "play/stop",        m::conf::conf.midiInStartStop,  0));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "action recording", m::conf::conf.midiInActionRec,  0));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "input recording",  m::conf::conf.midiInInputRec,   0));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "metronome",        m::conf::conf.midiInMetronome,  0));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "input volume",     m::conf::conf.midiInVolumeIn,   0));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "output volume",    m::conf::conf.midiInVolumeOut,  0));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "sequencer ×2",     m::conf::conf.midiInBeatDouble, 0));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "sequencer ÷2",     m::conf::conf.midiInBeatHalf,   0));
+*/
 	pack->end();
-
 	m_ok = new geButton(w()-88, pack->y()+pack->h()+G_GUI_OUTER_MARGIN, 80, G_GUI_UNIT, "Close");
 
 	end();
 
 	m_ok->callback(cb_close, (void*)this);
 
-	m_enable->value(m::conf::midiIn);
+	//m_enable->value(m::conf::conf.midiIn);
 	m_enable->callback(cb_enable, (void*)this);
 
 	m_channel->add("Channel (any)");
@@ -95,7 +98,7 @@ gdMidiInputMaster::gdMidiInputMaster()
 	m_channel->add("Channel 14");
 	m_channel->add("Channel 15");
 	m_channel->add("Channel 16");
-	m_channel->value(m::conf::midiInFilter -1 ? 0 : m::conf::midiInFilter + 1);
+	//m_channel->value(m::conf::conf.midiInFilter -1 ? 0 : m::conf::conf.midiInFilter + 1);
 	m_channel->callback(cb_setChannel, (void*)this);
 
 	u::gui::setFavicon(this);
@@ -115,7 +118,7 @@ void gdMidiInputMaster::cb_setChannel(Fl_Widget* w, void* p) { ((gdMidiInputMast
 
 void gdMidiInputMaster::cb_enable()
 {
-	m::conf::midiIn = m_enable->value();
+//	m::conf::conf.midiIn = m_enable->value();
 	m_enable->value() ? m_channel->activate() : m_channel->deactivate();
 }
 
@@ -125,7 +128,7 @@ void gdMidiInputMaster::cb_enable()
 
 void gdMidiInputMaster::cb_setChannel()
 {
-	m::conf::midiInFilter = m_channel->value() == 0 ? -1 : m_channel->value() - 1;
+//	m::conf::conf.midiInFilter = m_channel->value() == 0 ? -1 : m_channel->value() - 1;
 }
 
 }} // giada::v::

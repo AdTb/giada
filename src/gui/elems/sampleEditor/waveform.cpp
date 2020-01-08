@@ -65,8 +65,8 @@ geWaveform::geWaveform(ID channelId, ID waveId, int x, int y, int w, int h)
 {
 	m_data.size = w;
 
-	m_grid.snap  = m::conf::sampleEditorGridOn;
-	m_grid.level = m::conf::sampleEditorGridVal;
+	m_grid.snap  = m::conf::conf.sampleEditorGridOn;
+	m_grid.level = m::conf::conf.sampleEditorGridVal;
 }
 
 

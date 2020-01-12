@@ -49,6 +49,8 @@ public:
 
 	gdMidiInputChannel(ID channelId);
 
+	void refresh() override;
+
 private:
 
 	static void cb_enable(Fl_Widget* w, void* p);

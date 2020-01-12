@@ -14,6 +14,8 @@
 0.16.2 ---
 - Switch to Json for modern C++ library for reading and writing Json data
 - Drop support for raw patches (still readable for backward compatibility)
+- Simplify global configuration parameters
+- Center all micro-subwindow to screen
 
 
 0.16.1 --- 2020 . 01 . 08

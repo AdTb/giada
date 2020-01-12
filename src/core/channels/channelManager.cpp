@@ -157,19 +157,19 @@ const patch::Channel serializeChannel(const Channel& c)
 		pc.pan             = c.pan;
 		pc.hasActions      = c.hasActions;
 		pc.armed           = c.armed;
-		pc.midiIn          = c.midiIn.load();
-		pc.midiInKeyPress  = c.midiInKeyRel.load();
-		pc.midiInKeyRel    = c.midiInKeyPress.load();
-		pc.midiInKill      = c.midiInKill.load();
-		pc.midiInArm       = c.midiInArm.load();
-		pc.midiInVolume    = c.midiInVolume.load();
-		pc.midiInMute      = c.midiInMute.load();
-		pc.midiInSolo      = c.midiInSolo.load();
-		pc.midiInFilter    = c.midiInFilter.load();
-		pc.midiOutL        = c.midiOutL.load();
-		pc.midiOutLplaying = c.midiOutLplaying.load();
-		pc.midiOutLmute    = c.midiOutLmute.load();
-		pc.midiOutLsolo    = c.midiOutLsolo.load();
+		pc.midiIn          = c.midiIn;
+		pc.midiInKeyPress  = c.midiInKeyRel;
+		pc.midiInKeyRel    = c.midiInKeyPress;
+		pc.midiInKill      = c.midiInKill;
+		pc.midiInArm       = c.midiInArm;
+		pc.midiInVolume    = c.midiInVolume;
+		pc.midiInMute      = c.midiInMute;
+		pc.midiInSolo      = c.midiInSolo;
+		pc.midiInFilter    = c.midiInFilter;
+		pc.midiOutL        = c.midiOutL;
+		pc.midiOutLplaying = c.midiOutLplaying;
+		pc.midiOutLmute    = c.midiOutLmute;
+		pc.midiOutLsolo    = c.midiOutLsolo;
 	}
 
 #ifdef WITH_VST
@@ -187,8 +187,8 @@ const patch::Channel serializeChannel(const Channel& c)
 		pc.pitch             = sc.pitch;
 		pc.inputMonitor      = sc.inputMonitor;
 		pc.midiInVeloAsVol   = sc.midiInVeloAsVol;
-		pc.midiInReadActions = sc.midiInReadActions.load();
-		pc.midiInPitch       = sc.midiInPitch.load();
+		pc.midiInReadActions = sc.midiInReadActions;
+		pc.midiInPitch       = sc.midiInPitch;
 	}
 	else
 	if (c.type == ChannelType::MIDI) {

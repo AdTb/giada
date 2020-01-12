@@ -45,12 +45,11 @@ class gdMidiInputBase : public gdWindow
 {
 public:
 
-	gdMidiInputBase(int x, int y, int w, int h, const char* title);
 	~gdMidiInputBase();
 
-	void refresh() override;
-
 protected:
+
+	gdMidiInputBase(int x, int y, int w, int h, const char* title);
 
 	static const int LEARNER_WIDTH = 284;
 

@@ -39,46 +39,51 @@
 namespace giada {
 namespace v 
 {
-geMidiLearner::geMidiLearner(int X, int Y, int W, const char* l, 
-	std::atomic<uint32_t>& param, ID channelId)
+geMidiLearner::geMidiLearner(int X, int Y, int W, const char* l, int param, uint32_t value)
+: geMidiLearner(X, Y, W, l, param, value, 0)
+{
+}
+
+
+geMidiLearner::geMidiLearner(int X, int Y, int W, const char* l, int param, uint32_t value, ID channelId)
 : Fl_Group   (X, Y, W, 20),
-  m_channelId(channelId),
-  m_param    (param)
+  param      (param),
+  m_channelId(channelId)
 {
 	begin();
-	m_text   = new geBox(x(), y(), 156, 20, l);
-	m_value  = new geButton(m_text->x()+m_text->w()+4, y(), 80, 20);
-	m_button = new geButton(m_value->x()+m_value->w()+4, y(), 40, 20, "learn");
+	m_text     = new geBox(x(), y(), 156, 20, l);
+	m_valueBtn = new geButton(m_text->x()+m_text->w()+4, y(), 80, 20);
+	m_button   = new geButton(m_valueBtn->x()+m_valueBtn->w()+4, y(), 40, 20, "learn");
 	end();
 
 	m_text->box(G_CUSTOM_BORDER_BOX);
 	m_text->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
 
-	m_value->box(G_CUSTOM_BORDER_BOX);
-	m_value->callback(cb_value, (void*)this);
-	m_value->when(FL_WHEN_RELEASE);
+	m_valueBtn->box(G_CUSTOM_BORDER_BOX);
+	m_valueBtn->callback(cb_value, (void*)this);
+	m_valueBtn->when(FL_WHEN_RELEASE);
 
 	m_button->type(FL_TOGGLE_BUTTON);
 	m_button->callback(cb_button, (void*)this);
 	
-	refresh();
+	refresh(value);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 
-void geMidiLearner::refresh()
+void geMidiLearner::refresh(uint32_t value)
 {
 	std::string tmp = "(not set)";
 	
-	if (m_param != 0x0) {
-		tmp = "0x" + u::string::iToString(m_param.load(), true); // true: hex mode
+	if (value != 0x0) {
+		tmp = "0x" + u::string::iToString(value, /*hex=*/true);
 		tmp.pop_back();  // Remove last two digits, useless in MIDI messages
 		tmp.pop_back();  // Remove last two digits, useless in MIDI messages
 	}
 
-	m_value->copy_label(tmp.c_str());
+	m_valueBtn->copy_label(tmp.c_str());
 	m_button->value(0);
 }
 
@@ -96,7 +101,7 @@ void geMidiLearner::cb_value(Fl_Widget* v, void* p) { ((geMidiLearner*)p)->cb_va
 void geMidiLearner::cb_value()
 {
 	if (Fl::event_button() == FL_RIGHT_MOUSE)
-		c::io::midiLearn(m::MidiEvent(), m_param, m_channelId);  // Empty event (0x0)
+		c::io::clearMidiLearn(param, m_channelId);
 }
 
 
@@ -106,11 +111,8 @@ void geMidiLearner::cb_value()
 void geMidiLearner::cb_button()
 {
 	if (m_button->value() == 1)
-		m::midiDispatcher::startMidiLearn([this](m::MidiEvent e) 
-		{
-			c::io::midiLearn(e, m_param, m_channelId);
-		});
+		c::io::startMidiLearn(param, m_channelId);
 	else
-		m::midiDispatcher::stopMidiLearn();	
+		c::io::stopMidiLearn();
 }
 }} // giada::v::

@@ -32,6 +32,7 @@
 #include <atomic>
 #include "core/types.h"
 #include "core/midiEvent.h"
+#include "core/model/model.h"
 
 
 namespace giada {
@@ -53,7 +54,9 @@ Set key 'k' to Sample Channel 'channelId'. Used for keyboard bindings. */
 
 void setSampleChannelKey(ID channelId, int k);
 
-void midiLearn(m::MidiEvent e, std::atomic<uint32_t>& param, ID channelId);
+void startMidiLearn(int param, ID channelId=0);
+void stopMidiLearn ();
+void clearMidiLearn(int param, ID channelId=0);
 }}} // giada::c::io::
 
 #endif

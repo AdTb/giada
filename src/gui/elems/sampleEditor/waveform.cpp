@@ -289,7 +289,7 @@ void geWaveform::drawPlayHead()
 	float tp;	
 	m::model::onGet(m::model::channels, m_channelId, [&](m::Channel& c)
 	{
-		tp = static_cast<m::SampleChannel&>(c).trackerPreview.load();
+		tp = static_cast<m::SampleChannel&>(c).trackerPreview;
 	});
 
 	int p = frameToPixel(tp) + x();

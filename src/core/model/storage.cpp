@@ -32,6 +32,7 @@
 #include "core/channels/midiChannel.h"
 #include "core/kernelAudio.h"
 #include "core/patch.h"
+#include "core/conf.h"
 #include "core/pluginManager.h"
 #include "core/recorderHandler.h"
 #include "core/waveManager.h"
@@ -72,6 +73,27 @@ void store(patch::Patch& patch)
 /* -------------------------------------------------------------------------- */
 
 
+void store(conf::Conf& conf)
+{
+	MidiInLock l(midiIn);
+
+	conf.midiInEnabled    = midiIn.get()->enabled;
+	conf.midiInFilter     = midiIn.get()->filter;
+	conf.midiInRewind     = midiIn.get()->rewind;
+	conf.midiInStartStop  = midiIn.get()->startStop;
+	conf.midiInActionRec  = midiIn.get()->actionRec;
+	conf.midiInInputRec   = midiIn.get()->inputRec;
+	conf.midiInMetronome  = midiIn.get()->metronome;
+	conf.midiInVolumeIn   = midiIn.get()->volumeIn;
+	conf.midiInVolumeOut  = midiIn.get()->volumeOut;
+	conf.midiInBeatDouble = midiIn.get()->beatDouble;
+	conf.midiInBeatHalf   = midiIn.get()->beatHalf;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+
 void load(const patch::Patch& patch)
 {
 	onSwap(clock, [&](Clock& c)
@@ -100,5 +122,27 @@ void load(const patch::Patch& patch)
 		else
 			channels.push(channelManager::deserializeChannel(pchannel, kernelAudio::getRealBufSize()));
     }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+
+void load(const conf::Conf& c)
+{
+	onSwap(midiIn, [&](MidiIn& m)
+	{
+		m.enabled    = c.midiInEnabled;
+		m.filter     = c.midiInFilter;
+		m.rewind     = c.midiInRewind;
+		m.startStop  = c.midiInStartStop;
+		m.actionRec  = c.midiInActionRec;
+		m.inputRec   = c.midiInInputRec;
+		m.volumeIn   = c.midiInMetronome;
+		m.volumeOut  = c.midiInVolumeIn;
+		m.beatDouble = c.midiInVolumeOut;
+		m.beatHalf   = c.midiInBeatDouble;
+		m.metronome  = c.midiInBeatHalf;
+	});	
 }
 }}} // giada::m::model::

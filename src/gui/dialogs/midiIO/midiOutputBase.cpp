@@ -46,7 +46,7 @@ gdMidiOutputBase::gdMidiOutputBase(int w, int h)
 
 gdMidiOutputBase::~gdMidiOutputBase()
 {
-	m::midiDispatcher::stopMidiLearn();
+	m::midiDispatcher::stopLearn();
 }
 
 
@@ -56,7 +56,7 @@ gdMidiOutputBase::~gdMidiOutputBase()
 void gdMidiOutputBase::refresh()
 {
 	for (geMidiLearner* l : m_learners)
-		l->refresh();	
+		l->refresh(0);	
 }
 
 

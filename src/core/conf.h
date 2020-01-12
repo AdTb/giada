@@ -116,6 +116,18 @@ struct Conf
 	RecTriggerMode recTriggerMode  = RecTriggerMode::NORMAL;
 	float          recTriggerLevel = G_DEFAULT_REC_TRIGGER_LEVEL;
 
+	bool     midiInEnabled    = false;
+	int      midiInFilter     = -1;
+	uint32_t midiInRewind     = 0x0;
+	uint32_t midiInStartStop  = 0x0;
+	uint32_t midiInActionRec  = 0x0;
+	uint32_t midiInInputRec   = 0x0;
+	uint32_t midiInMetronome  = 0x0;
+	uint32_t midiInVolumeIn   = 0x0;
+	uint32_t midiInVolumeOut  = 0x0;
+	uint32_t midiInBeatDouble = 0x0;
+	uint32_t midiInBeatHalf   = 0x0;
+
 #ifdef WITH_VST
 
 	int pluginChooserX; 

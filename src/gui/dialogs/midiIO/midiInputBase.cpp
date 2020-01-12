@@ -47,22 +47,12 @@ gdMidiInputBase::gdMidiInputBase(int x, int y, int w, int h, const char* title)
 
 gdMidiInputBase::~gdMidiInputBase()
 {
-	m::midiDispatcher::stopMidiLearn();
+	m::midiDispatcher::stopLearn();
 	
 	m::conf::conf.midiInputX = x();
 	m::conf::conf.midiInputY = y();
 	m::conf::conf.midiInputW = w();
 	m::conf::conf.midiInputH = h();
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-
-void gdMidiInputBase::refresh()
-{
-	for (geMidiLearner* l : m_learners)
-		l->refresh();
 }
 
 

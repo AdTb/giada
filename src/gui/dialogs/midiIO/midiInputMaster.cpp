@@ -29,6 +29,7 @@
 #include "utils/gui.h"
 #include "core/conf.h"
 #include "core/const.h"
+#include "core/model/model.h"
 #include "gui/elems/midiLearner.h"
 #include "gui/elems/basics/button.h"
 #include "gui/elems/basics/check.h"
@@ -44,33 +45,32 @@ gdMidiInputMaster::gdMidiInputMaster()
 {
 	set_modal();
 
+	m::model::midiIn.lock();
+	const m::model::MidiIn* midiIn = m::model::midiIn.get();
+
 	Fl_Group* groupHeader = new Fl_Group(G_GUI_OUTER_MARGIN, G_GUI_OUTER_MARGIN, w(), 20);
 	groupHeader->begin();
 
 		m_enable = new geCheck(G_GUI_OUTER_MARGIN, G_GUI_OUTER_MARGIN, 120, G_GUI_UNIT, 
-			"m_enable MIDI input");
+			"Enable MIDI input");
 		m_channel = new geChoice(m_enable->x()+m_enable->w()+44, G_GUI_OUTER_MARGIN, 120, G_GUI_UNIT);
 
 	groupHeader->resizable(nullptr);
 	groupHeader->end();
 
-//assert(false);
-
 	Fl_Pack* pack = new Fl_Pack(G_GUI_OUTER_MARGIN, groupHeader->y()+groupHeader->h()+G_GUI_OUTER_MARGIN, 
 		LEARNER_WIDTH, 212);
 	pack->spacing(G_GUI_INNER_MARGIN);
 	pack->begin();
-/*
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "rewind",           m::conf::conf.midiInRewind,     0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "play/stop",        m::conf::conf.midiInStartStop,  0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "action recording", m::conf::conf.midiInActionRec,  0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "input recording",  m::conf::conf.midiInInputRec,   0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "metronome",        m::conf::conf.midiInMetronome,  0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "input volume",     m::conf::conf.midiInVolumeIn,   0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "output volume",    m::conf::conf.midiInVolumeOut,  0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "sequencer ×2",     m::conf::conf.midiInBeatDouble, 0));
-		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "sequencer ÷2",     m::conf::conf.midiInBeatHalf,   0));
-*/
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "rewind",           G_MIDI_IN_REWIND,      midiIn->rewind));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "play/stop",        G_MIDI_IN_START_STOP,  midiIn->startStop));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "action recording", G_MIDI_IN_ACTION_REC,  midiIn->actionRec));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "input recording",  G_MIDI_IN_INPUT_REC,   midiIn->inputRec));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "metronome",        G_MIDI_IN_METRONOME,   midiIn->volumeIn));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "input volume",     G_MIDI_IN_VOLUME_IN,   midiIn->volumeOut));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "output volume",    G_MIDI_IN_VOLUME_OUT,  midiIn->beatDouble));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "sequencer ×2",     G_MIDI_IN_BEAT_DOUBLE, midiIn->beatHalf));
+		m_learners.push_back(new geMidiLearner(0, 0, LEARNER_WIDTH, "sequencer ÷2",     G_MIDI_IN_BEAT_HALF,   midiIn->metronome));
 	pack->end();
 	m_ok = new geButton(w()-88, pack->y()+pack->h()+G_GUI_OUTER_MARGIN, 80, G_GUI_UNIT, "Close");
 
@@ -78,7 +78,7 @@ gdMidiInputMaster::gdMidiInputMaster()
 
 	m_ok->callback(cb_close, (void*)this);
 
-	//m_enable->value(m::conf::conf.midiIn);
+	m_enable->value(midiIn->enabled);
 	m_enable->callback(cb_enable, (void*)this);
 
 	m_channel->add("Channel (any)");
@@ -98,11 +98,39 @@ gdMidiInputMaster::gdMidiInputMaster()
 	m_channel->add("Channel 14");
 	m_channel->add("Channel 15");
 	m_channel->add("Channel 16");
-	//m_channel->value(m::conf::conf.midiInFilter -1 ? 0 : m::conf::conf.midiInFilter + 1);
+	
+	m_channel->value(midiIn->filter - 1 ? 0 : midiIn->filter + 1);
 	m_channel->callback(cb_setChannel, (void*)this);
+	m_enable->value() ? m_channel->activate() : m_channel->deactivate();
+
+	m::model::midiIn.unlock();
 
 	u::gui::setFavicon(this);
 	show();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+
+void gdMidiInputMaster::refresh()
+{
+	m::model::MidiInLock l(m::model::midiIn);
+	const m::model::MidiIn* midiIn = m::model::midiIn.get();
+
+	for (geMidiLearner* l : m_learners) {
+		switch (l->param) {
+			case G_MIDI_IN_REWIND      : l->refresh(midiIn->rewind); break;
+			case G_MIDI_IN_START_STOP  : l->refresh(midiIn->startStop); break;
+			case G_MIDI_IN_ACTION_REC  : l->refresh(midiIn->actionRec); break;
+			case G_MIDI_IN_INPUT_REC   : l->refresh(midiIn->inputRec); break;
+			case G_MIDI_IN_METRONOME   : l->refresh(midiIn->volumeIn); break;
+			case G_MIDI_IN_VOLUME_IN   : l->refresh(midiIn->volumeOut); break;
+			case G_MIDI_IN_VOLUME_OUT  : l->refresh(midiIn->beatDouble); break;
+			case G_MIDI_IN_BEAT_DOUBLE : l->refresh(midiIn->beatHalf); break;
+			case G_MIDI_IN_BEAT_HALF   : l->refresh(midiIn->metronome); break;
+		}
+	}
 }
 
 
@@ -118,7 +146,10 @@ void gdMidiInputMaster::cb_setChannel(Fl_Widget* w, void* p) { ((gdMidiInputMast
 
 void gdMidiInputMaster::cb_enable()
 {
-//	m::conf::conf.midiIn = m_enable->value();
+	onSwap(m::model::midiIn, [&](m::model::MidiIn& m)
+	{
+		m.enabled = m_enable->value();
+	});
 	m_enable->value() ? m_channel->activate() : m_channel->deactivate();
 }
 
@@ -128,7 +159,9 @@ void gdMidiInputMaster::cb_enable()
 
 void gdMidiInputMaster::cb_setChannel()
 {
-//	m::conf::conf.midiInFilter = m_channel->value() == 0 ? -1 : m_channel->value() - 1;
+	onSwap(m::model::midiIn, [&](m::model::MidiIn& m)
+	{
+		m.filter = m_channel->value() == 0 ? -1 : m_channel->value() - 1;
+	});
 }
-
 }} // giada::v::

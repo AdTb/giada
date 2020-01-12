@@ -65,6 +65,22 @@ namespace giada {
 namespace c {
 namespace io 
 {
+namespace
+{
+void refreshMidiWindows_()
+{
+	Fl::lock();
+	u::gui::refreshSubWindow(WID_MIDI_INPUT);
+	u::gui::refreshSubWindow(WID_MIDI_OUTPUT);
+	Fl::unlock();	
+}
+} // {anonymous}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+
 void keyPress(ID channelId, bool ctrl, bool shift, int velocity)
 {
 	if (ctrl)
@@ -106,30 +122,27 @@ void setSampleChannelKey(ID channelId, int k)
 /* -------------------------------------------------------------------------- */
 
 
-void midiLearn(m::MidiEvent e, std::atomic<uint32_t>& param, ID channelId)
+void startMidiLearn(int param, ID channelId)
 {
-assert(false);
+	if (channelId == 0)
+		m::midiDispatcher::startMasterLearn(param, refreshMidiWindows_);
+	else
+		m::midiDispatcher::startChannelLearn(param, channelId, refreshMidiWindows_);
+}
 
-	/* No MIDI learning if we are learning a Channel (channelId != 0) and 
-	the selected MIDI channel is filtered OR if we are learning a global 
-	parameter (channel == 0) and the selected MIDI channel is filtered. */
-/*
-	if (channelId == 0) {
-		if (!m::conf::conf.isMidiInAllowed(e.getChannel()))
-			return;
-	}
-	else {
-		m::model::ChannelsLock l(m::model::channels);
-		if (!m::model::get(m::model::channels, channelId).isMidiInAllowed(e.getChannel()))
-			return;
-	}
 
-	param.store(e.getRawNoVelocity());
-	m::midiDispatcher::stopMidiLearn();
+void stopMidiLearn()
+{
+	m::midiDispatcher::stopLearn();
+	refreshMidiWindows_();
+}
 
-	Fl::lock();
-	u::gui::refreshSubWindow(WID_MIDI_INPUT);
-	u::gui::refreshSubWindow(WID_MIDI_OUTPUT);
-	Fl::unlock();*/
+
+void clearMidiLearn(int param, ID channelId)
+{
+	if (channelId == 0)
+		m::midiDispatcher::clearMasterLearn(param);
+	else
+		m::midiDispatcher::clearChannelLearn(param, channelId);
 }
 }}} // giada::c::io::

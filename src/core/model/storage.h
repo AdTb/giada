@@ -35,10 +35,16 @@ namespace patch
 {
 struct Patch;
 }
+namespace conf
+{
+struct Conf;
+}
 namespace model
 {
-void store(patch::Patch& patch);
+void store(conf::Conf& c);
+void store(patch::Patch& p);
 void load(const patch::Patch& p);
+void load(const conf::Conf& c);
 }}} // giada::m::model::
 
 

@@ -31,6 +31,7 @@
 
 #include <atomic>
 #include <FL/Fl_Group.H>
+#include "core/model/model.h"
 #include "core/types.h"
 
 
@@ -49,10 +50,15 @@ class geMidiLearner : public Fl_Group
 {
 public:
 
-	geMidiLearner(int x, int y, int w, const char* l, std::atomic<uint32_t>& param, 
-		ID channelId);
+	geMidiLearner(int x, int y, int w, const char* l, int param, uint32_t value, ID channelId);
+	geMidiLearner(int x, int y, int w, const char* l, int param, uint32_t value);
 
-	void refresh();
+	void refresh(uint32_t value);
+
+	/* m_param
+	Parameter to be learnt. */
+
+	int param;
 
 private:
 
@@ -67,13 +73,8 @@ private:
 
 	ID m_channelId;
 
-	/* m_param
-	Reference to ch->midiIn[value]. */
-
-	std::atomic<uint32_t>& m_param;
-
 	geBox*    m_text;
-	geButton* m_value;
+	geButton* m_valueBtn;
 	geButton* m_button;
 };
 }} // giada::v::

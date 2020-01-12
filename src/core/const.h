@@ -226,6 +226,30 @@ constexpr int MIDIMAP_READ_OK       = 0x04;
 
 
 
+/* -- MIDI in parameters (for MIDI learning) -------------------------------- */
+constexpr int G_MIDI_IN_ENABLED      = 1;
+constexpr int G_MIDI_IN_FILTER       = 2;
+constexpr int G_MIDI_IN_REWIND       = 3;
+constexpr int G_MIDI_IN_START_STOP   = 4;
+constexpr int G_MIDI_IN_ACTION_REC   = 5;
+constexpr int G_MIDI_IN_INPUT_REC    = 6;
+constexpr int G_MIDI_IN_METRONOME    = 7;
+constexpr int G_MIDI_IN_VOLUME_IN    = 8;
+constexpr int G_MIDI_IN_VOLUME_OUT   = 9;
+constexpr int G_MIDI_IN_BEAT_DOUBLE  = 10;
+constexpr int G_MIDI_IN_BEAT_HALF    = 11;
+constexpr int G_MIDI_IN_KEYPRESS     = 12;
+constexpr int G_MIDI_IN_KEYREL       = 13;
+constexpr int G_MIDI_IN_KILL         = 14;
+constexpr int G_MIDI_IN_ARM          = 15;
+constexpr int G_MIDI_IN_MUTE         = 16;
+constexpr int G_MIDI_IN_SOLO         = 17;
+constexpr int G_MIDI_IN_VOLUME       = 18;
+constexpr int G_MIDI_IN_PITCH        = 19;
+constexpr int G_MIDI_IN_READ_ACTIONS = 20;
+
+
+
 /* -- MIDI signals -------------------------------------------------------------
 Channel voices messages - controller (0xB0) is a special subset of this family:
 it drives knobs, volume, faders and such. */

@@ -41,7 +41,7 @@ namespace giada {
 namespace v 
 {
 gdMidiInputMaster::gdMidiInputMaster()
-: gdMidiInputBase(0, 0, 300, 284, "MIDI Input Setup (global)")
+: gdMidiInputBase(m::conf::conf.midiInputX, m::conf::conf.midiInputY, 300, 284, "MIDI Input Setup (global)")
 {
 	set_modal();
 

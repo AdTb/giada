@@ -132,8 +132,6 @@ gdMidiInputChannel::gdMidiInputChannel(ID channelId)
 
 	end();
 
-	size_range(G_DEFAULT_SUBWINDOW_W, G_DEFAULT_SUBWINDOW_H);
-
 	u::gui::setFavicon(this);
 	set_modal();
 	show();

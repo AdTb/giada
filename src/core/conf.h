@@ -152,12 +152,6 @@ extern Conf conf;
 void init();
 bool read();
 bool write();
-
-/* isMidiAllowed
-Given a MIDI channel 'c' tells whether this channel should be allowed to receive
-and process MIDI events on MIDI channel 'c'. */
-
-bool isMidiInAllowed(int c);
 }}}; // giada::m::conf::
 
 #endif

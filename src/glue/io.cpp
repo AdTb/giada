@@ -141,8 +141,8 @@ void stopMidiLearn()
 void clearMidiLearn(int param, ID channelId)
 {
 	if (channelId == 0)
-		m::midiDispatcher::clearMasterLearn(param);
+		m::midiDispatcher::clearMasterLearn(param, refreshMidiWindows_);
 	else
-		m::midiDispatcher::clearChannelLearn(param, channelId);
+		m::midiDispatcher::clearChannelLearn(param, channelId, refreshMidiWindows_);
 }
 }}} // giada::c::io::

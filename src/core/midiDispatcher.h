@@ -43,8 +43,8 @@ namespace midiDispatcher
 void startChannelLearn(int param, ID channelId, std::function<void()> f);
 void startMasterLearn (int param, std::function<void()> f);
 void stopLearn();
-void clearMasterLearn (int param);
-void clearChannelLearn(int param, ID channelId);
+void clearMasterLearn (int param, std::function<void()> f);
+void clearChannelLearn(int param, ID channelId, std::function<void()> f);
 
 void dispatch(int byte1, int byte2, int byte3);
 

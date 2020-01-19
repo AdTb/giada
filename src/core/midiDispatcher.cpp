@@ -365,15 +365,15 @@ void stopLearn()
 /* -------------------------------------------------------------------------- */
 
 
-void clearMasterLearn(int param)
+void clearMasterLearn(int param, std::function<void()> f)
 {
-	learnMaster_(MidiEvent(), param, []{}); // Empty event (0x0)
+	learnMaster_(MidiEvent(), param, f); // Empty event (0x0)
 }
 
 
-void clearChannelLearn(int param, ID channelId)
+void clearChannelLearn(int param, ID channelId, std::function<void()> f)
 {
-	learnChannel_(MidiEvent(), param, channelId, []{}); // Empty event (0x0)
+	learnChannel_(MidiEvent(), param, channelId, f); // Empty event (0x0)
 }
 
 

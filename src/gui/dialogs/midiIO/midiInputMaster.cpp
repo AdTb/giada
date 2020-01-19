@@ -101,7 +101,7 @@ gdMidiInputMaster::gdMidiInputMaster()
 	
 	m_channel->value(midiIn->filter - 1 ? 0 : midiIn->filter + 1);
 	m_channel->callback(cb_setChannel, (void*)this);
-	m_enable->value() ? m_channel->activate() : m_channel->deactivate();
+	midiIn->enabled ? m_channel->activate() : m_channel->deactivate();
 
 	m::model::midiIn.unlock();
 

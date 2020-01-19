@@ -73,6 +73,25 @@ geMidiLearner::geMidiLearner(int X, int Y, int W, const char* l, int param, uint
 /* -------------------------------------------------------------------------- */
 
 
+void geMidiLearner::activate()
+{
+	Fl_Group::activate();
+	m_valueBtn->activate();
+	m_button->activate();
+}
+
+
+void geMidiLearner::deactivate()
+{
+	Fl_Group::deactivate();
+	m_valueBtn->deactivate();
+	m_button->deactivate();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+
 void geMidiLearner::refresh(uint32_t value)
 {
 	std::string tmp = "(not set)";

@@ -76,6 +76,9 @@ gdMidiInputMaster::gdMidiInputMaster()
 
 	end();
 
+	for (auto* l : m_learners)
+		midiIn->enabled ? l->activate() : l->deactivate();
+
 	m_ok->callback(cb_close, (void*)this);
 
 	m_enable->value(midiIn->enabled);
@@ -150,7 +153,11 @@ void gdMidiInputMaster::cb_enable()
 	{
 		m.enabled = m_enable->value();
 	});
+	
 	m_enable->value() ? m_channel->activate() : m_channel->deactivate();
+
+	for (auto* l : m_learners)
+		m_enable->value() ? l->activate() : l->deactivate();
 }
 
 

@@ -86,6 +86,9 @@ gdMidiInputChannel::gdMidiInputChannel(ID channelId)
 
 	m_container->end();
 
+	for (auto* l : m_learners)
+		c.midiIn ? l->activate() : l->deactivate();
+
 	Fl_Group* groupButtons = new Fl_Group(8, m_container->y()+m_container->h()+8, m_container->w(), 20);
 	groupButtons->begin();
 
@@ -94,7 +97,6 @@ gdMidiInputChannel::gdMidiInputChannel(ID channelId)
 
 	groupButtons->resizable(spacer);
 	groupButtons->end();
-
 
 	m_ok->callback(cb_close, (void*)this);
 
@@ -244,7 +246,11 @@ void gdMidiInputChannel::cb_enable()
 	{
 		c.midiIn = m_enable->value();
 	});
+
 	m_enable->value() ? m_channel->activate() : m_channel->deactivate();
+
+	for (auto* l : m_learners)
+		m_enable->value() ? l->activate() : l->deactivate();
 }
 
 

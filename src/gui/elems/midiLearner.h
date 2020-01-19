@@ -55,6 +55,9 @@ public:
 
 	void refresh(uint32_t value);
 
+	void activate();
+	void deactivate();
+
 	/* m_param
 	Parameter to be learnt. */
 
